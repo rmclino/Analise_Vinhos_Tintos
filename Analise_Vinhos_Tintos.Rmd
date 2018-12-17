@@ -1,0 +1,125 @@
+Vinhos Tintos por Ricardo Lino
+========================================================
+Descrtição do Conjunto de Dados escolhido: Este conjunto de dados contém 1.599 vinhos tintos com 11 variáveis de propriedades químicas do vinho. Ao menos 3 especialistas em vinhos avaliaram cada vinho, fornecendo uma nota entre 0 (muito ruim) e 10 (muito excelente).
+
+Questão Guia: Quais propriedades químicas influenciam a qualidade dos vinhos tintos?
+
+origem: "https://s3.amazonaws.com/udacity-hosted-downloads/ud651/wineQualityInfo.txt"
+
+Author:
+    P. Cortez, A. Cerdeira, F. Almeida, T. Matos and J. Reis. 
+    Modeling wine preferences by data mining from physicochemical properties.
+    In Decision Support Systems, Elsevier, 47(4):547-553. ISSN: 0167-9236.
+
+
+   
+```{r echo=FALSE, message=FALSE, warning=FALSE, packages}
+# Carregue aqui todos os pacotes utilizados na sua analise realizada neste arquivo fonte.
+library(ggplot2)
+library(dplyr)
+
+# Note que o parâmetro "echo" foi definido como FALSE neste código.
+#OK
+# Isso previne que o código apresente resultados formatados em HTML.
+# Você deve definir echo=FALSE para todos os blocos de código no seu arquivo.
+
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE Load_the_Data}
+# Carregamento dos dados
+data_path <- "C:\\Users\\Ricardo\\OneDrive\\____UDACITY\\_DATA_SCIENTIST\\EDA_Course_Materials\\Analise_Vinhos_Tintos"
+setwd(data_path)
+df_QualidadeVinhoTinto <- read.csv('wineQualityReds.csv')
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+
+print("Dimensão dos dados:")
+dim(df_QualidadeVinhoTinto)
+print("Estrutura dos Dados:")
+str(df_QualidadeVinhoTinto)
+print("Sumário dos Dados:")
+summary(df_QualidadeVinhoTinto)
+```
+
+
+# Seção de Gráficos Univariados
+```{r echo=FALSE, Univariate_Plots}
+qplot(data=df_QualidadeVinhoTinto, x= quality)
+```
+
+# Análise Univariada
+
+### Qual Ã© a estrutura do conjunto de dados?
+
+### Quais são os principais atributos de interesse deste conjunto de dados?
+
+### Quais outros atributos você acha que podem lhe auxiliar na investigação destes atributos de interesse?
+
+### Você criou novas variáveis a partir dos atributos existentes no conjunto de dados?
+
+### Dos atributos investigados, distribuiÃ§Ãµes incomuns foram encontradas? Você aplicou operaÃ§Ãµes nos dados para limpá-los, ajustá-los ou mudar a forma dos dados? Se sim, por quê?
+
+
+
+# Seção de Gráficos Bivariados
+```{r echo=FALSE, Bivariate_Plots}
+
+```
+
+# Análise Bivariada
+
+### Discuta sobre alguns dos relacionamentos observados nesta parte da investigação. Como os atributos de interesse variaram no conjunto de dados?
+
+### Você observou algum relacionamento interessante entre os outros atributos (os que não são de interesse)?
+
+### Qual foi o relacionamento mais forte encontrado?
+
+
+
+
+# Seção de Gráficos Multivariados
+
+```{r echo=FALSE, Multivariate_Plots}
+
+```
+
+# Análise Multivariada
+
+### Discuta sobre os relacionamentos observados nesta parte da investigação. Quais atributos que fortaleceram os demais na observação das variáveis de interesse?
+
+### InteraÃ§Ãµes surpreendentes e/ou interessantes foram encontradas entre os atributos?
+
+### OPCIONAL: Modelos foram criados usando este conjunto de dados? Discuta sobre os pontos fortes e as limitaÃ§Ãµes do seu modelo.
+
+------
+
+# Gráficos Finais e Sumário
+
+### Primeiro Gráfico
+```{r echo=FALSE, Plot_One}
+
+```
+
+### Descrição do Primeiro Gráfico
+
+
+### Segundo Gráfico
+```{r echo=FALSE, Plot_Two}
+
+```
+
+### Descrição do Segundo Gráfico
+
+
+### Terceiro Gráfico
+```{r echo=FALSE, Plot_Three}
+
+```
+
+### Descrição do Terceiro Gráfico
+
+------
+
+# Reflexão
