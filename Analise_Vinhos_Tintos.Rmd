@@ -1,6 +1,7 @@
-Vinhos Tintos por Ricardo Lino
+# Análise de Vinhos Tintos 
+## por Ricardo Lino
 ========================================================
-Descrtição do Conjunto de Dados escolhido: Este conjunto de dados contém 1.599 vinhos tintos com 11 variáveis de propriedades químicas do vinho. Ao menos 3 especialistas em vinhos avaliaram cada vinho, fornecendo uma nota entre 0 (muito ruim) e 10 (muito excelente).
+> Descrição do Conjunto de Dados escolhido: Este conjunto de dados contém 1.599 vinhos tintos com 11 variáveis de propriedades químicas do vinho. Ao menos 3 especialistas em vinhos avaliaram cada vinho, fornecendo uma nota entre 0 (muito ruim) e 10 (muito excelente).
 
 Questão Guia: Quais propriedades químicas influenciam a qualidade dos vinhos tintos?
 
@@ -17,6 +18,7 @@ Author:
 # Carregue aqui todos os pacotes utilizados na sua analise realizada neste arquivo fonte.
 library(ggplot2)
 library(dplyr)
+library(gridExtra)
 
 # Note que o parâmetro "echo" foi definido como FALSE neste código.
 #OK
@@ -30,30 +32,124 @@ library(dplyr)
 # Carregamento dos dados
 data_path <- "C:\\Users\\Ricardo\\OneDrive\\____UDACITY\\_DATA_SCIENTIST\\EDA_Course_Materials\\Analise_Vinhos_Tintos"
 setwd(data_path)
-df_QualidadeVinhoTinto <- read.csv('wineQualityReds.csv')
+df_vinho <- read.csv('wineQualityReds.csv')
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE}
 
 print("Dimensão dos dados:")
-dim(df_QualidadeVinhoTinto)
+dim(df_vinho)
 print("Estrutura dos Dados:")
-str(df_QualidadeVinhoTinto)
+str(df_vinho)
 print("Sumário dos Dados:")
-summary(df_QualidadeVinhoTinto)
+summary(df_vinho)
 ```
 
+# Informações dos Atributos (em Inglês)
+
+1 - fixed acidity - acidos não volateis presentes no vinho.
+2 - volatile acidity - a quantidade de acido acetico, que em grau elevado pode levar a um sabor não agradavel (gosto de vinagre).
+3 - citric acid - encontrado em pequenas quantidade pode dar leveza e sabor ao vinhuo.
+4 - residual sugar - o açucar encontrado no vinho após o final da fermentação. Raro encontrar vinhos com menos de 1 grama por litro. Vinhos com mais d 45 gramas por litro são considerados doces.
+5 - chlorides - a quantidade de sal no vinho.
+6 - free sulfur dioxide - dióxido de enxofre livre no vinho. Previne a oxidação do vinho a a proliferação de microorganismos.
+7 - total sulfur dioxide - total de dióxido de enxofre no vinho. Concentraçãoes acima de 50 ppm se tornam evidente ao cheirar e provar o vinho.
+8 - density - densidade do vinho.
+9 - pH - nivel de acidez do vinho, de 0 a muito ácido até 14 muito básico. A maioria dos vinhos esta numa faixa entre 3-4 na escala de ph.
+10 - sulphates - um aditivo ao vinho que contribui para preservar o vinho.
+11 - alcohol - % de alcool no vinho
+Output variable (based on sensory data): Quality (score between 0 and 10) - qualidade do vinho de 0 a 10.
 
 # Seção de Gráficos Univariados
-```{r echo=FALSE, Univariate_Plots}
-qplot(data=df_QualidadeVinhoTinto, x= quality)
+
+## Qualidade do Vinho
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Quality}
+qplot(data=df_vinho, x= quality, color =I('black'), fill=I('#5e2129'), binwidth=1)
+
+```
+Observações: Uma aproximação de uma curva normal assimetrica, com skewness negativo. 
+```{r}
+table(df_vinho$quality)
+df_vinho$quality.group <- ifelse(df_vinho$quality > 6,"TOP",
+                                 ifelse(df_vinho$quality < 5,"LOW", "AVG"))
+table(df_vinho$quality.group)
+```
+
+## 1- Acidos e acidez dos Vinhos
+```{r echo=FALSE, message=FALSE, warning=FALSE, Univariate_Plots}
+p1 <- qplot(data=subset(df_vinho, quality.group == "LOW"),
+            x= fixed.acidity, 
+            color =I('black'), 
+            fill=I('grey'), 
+            main = "Low Qualy Wines",
+            xlim = c(floor(min(df_vinho$fixed.acidity)),ceiling(max(df_vinho$fixed.acidity))))
+p2 <- qplot(data=subset(df_vinho, quality.group == "AVG"),
+            x= fixed.acidity, 
+            color =I('black'), 
+            fill=I('#5e2129'), 
+            main = "Vinhos Médios",
+            xlim = c(floor(min(df_vinho$fixed.acidity)),ceiling(max(df_vinho$fixed.acidity))))
+
+p3 <- qplot(data=subset(df_vinho, quality.group == "TOP"),
+            x= fixed.acidity, 
+            color =I('black'), 
+            fill=I('orange'), 
+            main = "Top Wines",
+            xlim = c(floor(min(df_vinho$fixed.acidity)),ceiling(max(df_vinho$fixed.acidity))))
+
+p4 <- qplot(data=subset(df_vinho, quality.group == "LOW"),
+            x= volatile.acidity, 
+            color =I('black'), 
+            fill=I('grey'), 
+            main = "Low Qualy Wines",
+            xlim = c(floor(min(df_vinho$volatile.acidity)),ceiling(max(df_vinho$volatile.acidity))))
+p5 <- qplot(data=subset(df_vinho, quality.group == "AVG"),
+            x= volatile.acidity, 
+            color =I('black'), 
+            fill=I('#5e2129'), 
+            main = "AVG wines",
+            xlim = c(floor(min(df_vinho$volatile.acidity)),ceiling(max(df_vinho$volatile.acidity))))
+
+p6 <- qplot(data=subset(df_vinho, quality.group == "TOP"),
+            x= volatile.acidity, 
+            color =I('black'), 
+            fill=I('orange'), 
+            main = "Top Wines",
+            xlim = c(floor(min(df_vinho$volatile.acidity)),ceiling(max(df_vinho$volatile.acidity))))
+
+grid.arrange(p1,p2,p3,p4,p5,p6, ncol=3)
+```
+
+## 2- Chloridios e Dioxido de Enxofre livre, não livre (nova variavel) e total
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Univariate_Plots Tranformation}
+df_QualidadeVinhoTinto$not.free.sulfur.dioxide <- df_QualidadeVinhoTinto$total.sulfur.dioxide - df_QualidadeVinhoTinto$free.sulfur.dioxide
+
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Univariate_Plots2}
+p1 <- qplot(data=df_QualidadeVinhoTinto, x= chlorides, color =I('black'), fill=I('#5e2129'))
+p2 <- qplot(data=df_QualidadeVinhoTinto, x= free.sulfur.dioxide, color =I('black'), fill=I('#5e2129'))
+p3 <- qplot(data=df_QualidadeVinhoTinto, x= not.free.sulfur.dioxide, color =I('black'), fill=I('#5e2129'))
+p4 <- qplot(data=df_QualidadeVinhoTinto, x= total.sulfur.dioxide, color =I('black'), fill=I('#5e2129'))
+grid.arrange(p1,p2,p3,p4, ncol=2)
+```
+
+## 3- Densidade, sulfitos, açúcar residual e nivel de Alcool
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Univariate_Plots3}
+p1 <- qplot(data=df_QualidadeVinhoTinto, x= density, color =I('black'), fill=I('#5e2129'))
+p2 <- qplot(data=df_QualidadeVinhoTinto, x= alcohol, color =I('black'), fill=I('#5e2129'))
+p3 <- qplot(data=df_QualidadeVinhoTinto, x= sulphates, color =I('black'), fill=I('#5e2129'))
+p4 <- qplot(data=df_QualidadeVinhoTinto, x= residual.sugar, color =I('black'), fill=I('#5e2129'))
+grid.arrange(p1,p2,p3,p4, ncol=2)
 ```
 
 # Análise Univariada
 
-### Qual Ã© a estrutura do conjunto de dados?
 
-### Quais são os principais atributos de interesse deste conjunto de dados?
+## Qual a estrutura do conjunto de Dados?
 
 ### Quais outros atributos você acha que podem lhe auxiliar na investigação destes atributos de interesse?
 
