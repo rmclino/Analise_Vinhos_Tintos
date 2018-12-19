@@ -1,5 +1,11 @@
-# Análise de Vinhos Tintos 
-## por Ricardo Lino
+---
+output:
+  html_document: default
+  pdf_document: default
+---
+# Análise de Vinhos Tinto
+
+> por Ricardo Lino
 ========================================================
 > Descrição do Conjunto de Dados escolhido: Este conjunto de dados contém 1.599 vinhos tintos com 11 variáveis de propriedades químicas do vinho. Ao menos 3 especialistas em vinhos avaliaram cada vinho, fornecendo uma nota entre 0 (muito ruim) e 10 (muito excelente).
 
@@ -25,7 +31,7 @@ library(grid)
 # Você deve definir echo=FALSE para todos os blocos de código no seu arquivo.
 ```
 
-```{r echo=FALSE, message=FALSE, warning=FALSE Load_the_Data}
+```{r echo=FALSE, message=FALSE, warning=FALSE, Load_the_Data}
 # Carregamento dos dados
 data_path <- "C:\\Users\\Ricardo\\OneDrive\\____UDACITY\\_DATA_SCIENTIST\\EDA_Course_Materials\\Analise_Vinhos_Tintos"
 setwd(data_path)
@@ -40,9 +46,10 @@ print("Estrutura dos Dados:")
 str(df_vinho)
 print("Sumário dos Dados:")
 summary(df_vinho)
+names <- names(df_vinho)
 ```
 
-# Informações dos Atributos (em Inglês)
+## Informações dos Atributos (em Inglês)
 
 1 - fixed acidity - acidos não volateis presentes no vinho.
 2 - volatile acidity - a quantidade de acido acetico, que em grau elevado pode levar a um sabor não agradavel (gosto de vinagre).
@@ -57,9 +64,9 @@ summary(df_vinho)
 11 - alcohol - % de alcool no vinho
 Output variable (based on sensory data): Quality (score between 0 and 10) - qualidade do vinho de 0 a 10.
 
-# Seção de Gráficos Univariados
+## Seção de Gráficos Univariados
 
-## Qualidade do Vinho
+### Qualidade do Vinho
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, Quality}
 qplot(data=df_vinho, x= quality, color =I('black'), fill=I('#5e2129'), binwidth=1)
@@ -68,9 +75,10 @@ summary(df_vinho$quality)
 ```
 Observações: Uma aproximação de uma curva normal assimetrica, com skewness negativo. 
 
-## SEÇÂO DE GRÀFICOS UNIVARIADOS
+### SEÇÂO DE GRÀFICOS UNIVARIADOS
 Primeiro vamos dar uma olhada geral na distribuição das variaveis do nosso data set. Assim podemos conhecer melhor o que temos e direcionar nossa analise
 ```{r echo=FALSE, message=FALSE, warning=FALSE,}
+
 plots <- list()
 for(name in names){
 print(qplot(x=df_vinho[,name], 
@@ -82,19 +90,21 @@ print(qplot(x=df_vinho[,name],
 ```
 
 
-## Criação de uma nova variável categorica
+### Criação de uma nova variável categorica
 Como me interessou ver o que influencia na classificacao de um vinho bom. Pensei em analisar o que diferencia um vinho bom da media, e tab o que diferencia um vinho ruim.
 Agrupei classificando os vinhos em LOW, AVG e TOP. Com base no summario de dados de qualidade, vamos pegar os vinho com menor qualidade do 1o quantil e maior classificação do que o 3o quantil e classifica-los.
 
-```{r echo=FALSE, message=FALSE, warning=FALSE, Criar Grupo Qualidade}
+```{r echo=FALSE, message=FALSE, warning=FALSE, CriarGrupoQualidade}
 df_vinho$quality.group <- ifelse(df_vinho$quality > 6,"TOP",
                                  ifelse(df_vinho$quality < 5,"LOW", "AVG"))
+
 df_vinho$quality.group <-factor(df_vinho$quality.group, levels=c("LOW","AVG","TOP"))
+
 table(df_vinho$quality.group)
 ```
 Sabemos que a classificação de um vinho leva em conta também o fator preço, que não temos no nosso dataset, por isso temos de tomar cuidado, as vezes um bom vinho em um preço não é um bom vinho a um nivel de preço mais alto. Mas mesmo assim vamos continuar nossa analise e escolher alguma variaveis para nosso estudo.
 
-## 1- Acidos e acidez dos Vinhos
+### 1- Acidos e acidez dos Vinhos
 ```{r echo=FALSE, message=FALSE, warning=FALSE, Variavies.1}
 #fixed.acidity
 p1 <- qplot(data=subset(df_vinho, quality.group == "LOW"),
@@ -423,8 +433,18 @@ Podemos pelos gráficos notar que a densidade não parece influenciar muito (de 
 
 # Análise Univariada
 
-
 ## Qual a estrutura do conjunto de Dados?
+Existem 1599 vinhos no nosso _dataset_ com um índice (X) e com 11 atributos e um _output_ quality.
+Adcionei um agrupamento por nível de qualidade para poder destacar caracteristicas mais marcantes nos vinho de baixa, media e alta qualidade.
+A maioria dos vinho, 1319 foram classificados como médios _AVG_, 63 (4%) como de baixa qualidade _LOW_ e 217 (13,6%) como de alta qualidade _TOP_. 
+LOW | AVG  | TOP
+----|------|----
+ 63 | 1319 | 217
+
+Outras observaçães.
+ - A distribuição da qualidade dos vinhos se aproxima de uma normal com skew positivo
+ - 
+ 
 
 ### Quais outros atributos você acha que podem lhe auxiliar na investigação destes atributos de interesse?
 
