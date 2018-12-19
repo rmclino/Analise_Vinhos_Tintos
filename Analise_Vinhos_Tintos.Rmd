@@ -12,20 +12,17 @@ Author:
     Modeling wine preferences by data mining from physicochemical properties.
     In Decision Support Systems, Elsevier, 47(4):547-553. ISSN: 0167-9236.
 
-
-   
 ```{r echo=FALSE, message=FALSE, warning=FALSE, packages}
 # Carregue aqui todos os pacotes utilizados na sua analise realizada neste arquivo fonte.
 library(ggplot2)
 library(dplyr)
 library(gridExtra)
+library(grid)
 
 # Note que o parâmetro "echo" foi definido como FALSE neste código.
 #OK
 # Isso previne que o código apresente resultados formatados em HTML.
 # Você deve definir echo=FALSE para todos os blocos de código no seu arquivo.
-
-
 ```
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE Load_the_Data}
@@ -66,18 +63,40 @@ Output variable (based on sensory data): Quality (score between 0 and 10) - qual
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, Quality}
 qplot(data=df_vinho, x= quality, color =I('black'), fill=I('#5e2129'), binwidth=1)
-
+table(df_vinho$quality)
+summary(df_vinho$quality)
 ```
 Observações: Uma aproximação de uma curva normal assimetrica, com skewness negativo. 
-```{r}
-table(df_vinho$quality)
-df_vinho$quality.group <- ifelse(df_vinho$quality > 6,"TOP",
-                                 ifelse(df_vinho$quality < 5,"LOW", "AVG"))
-table(df_vinho$quality.group)
+
+## SEÇÂO DE GRÀFICOS UNIVARIADOS
+Primeiro vamos dar uma olhada geral na distribuição das variaveis do nosso data set. Assim podemos conhecer melhor o que temos e direcionar nossa analise
+```{r echo=FALSE, message=FALSE, warning=FALSE,}
+plots <- list()
+for(name in names){
+print(qplot(x=df_vinho[,name], 
+            color =I('black'), 
+            fill=I('#5e2129'), 
+            xlab= name)
+)
+}
 ```
 
+
+## Criação de uma nova variável categorica
+Como me interessou ver o que influencia na classificacao de um vinho bom. Pensei em analisar o que diferencia um vinho bom da media, e tab o que diferencia um vinho ruim.
+Agrupei classificando os vinhos em LOW, AVG e TOP. Com base no summario de dados de qualidade, vamos pegar os vinho com menor qualidade do 1o quantil e maior classificação do que o 3o quantil e classifica-los.
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Criar Grupo Qualidade}
+df_vinho$quality.group <- ifelse(df_vinho$quality > 6,"TOP",
+                                 ifelse(df_vinho$quality < 5,"LOW", "AVG"))
+df_vinho$quality.group <-factor(df_vinho$quality.group, levels=c("LOW","AVG","TOP"))
+table(df_vinho$quality.group)
+```
+Sabemos que a classificação de um vinho leva em conta também o fator preço, que não temos no nosso dataset, por isso temos de tomar cuidado, as vezes um bom vinho em um preço não é um bom vinho a um nivel de preço mais alto. Mas mesmo assim vamos continuar nossa analise e escolher alguma variaveis para nosso estudo.
+
 ## 1- Acidos e acidez dos Vinhos
-```{r echo=FALSE, message=FALSE, warning=FALSE, Univariate_Plots}
+```{r echo=FALSE, message=FALSE, warning=FALSE, Variavies.1}
+#fixed.acidity
 p1 <- qplot(data=subset(df_vinho, quality.group == "LOW"),
             x= fixed.acidity, 
             color =I('black'), 
@@ -98,6 +117,7 @@ p3 <- qplot(data=subset(df_vinho, quality.group == "TOP"),
             main = "Top Wines",
             xlim = c(floor(min(df_vinho$fixed.acidity)),ceiling(max(df_vinho$fixed.acidity))))
 
+#volatile.acidity
 p4 <- qplot(data=subset(df_vinho, quality.group == "LOW"),
             x= volatile.acidity, 
             color =I('black'), 
@@ -117,34 +137,289 @@ p6 <- qplot(data=subset(df_vinho, quality.group == "TOP"),
             fill=I('orange'), 
             main = "Top Wines",
             xlim = c(floor(min(df_vinho$volatile.acidity)),ceiling(max(df_vinho$volatile.acidity))))
+#citric.acid
+p7 <- qplot(data=subset(df_vinho, quality.group == "LOW"),
+            x= citric.acid, 
+            color =I('black'), 
+            fill=I('grey'), 
+            main = "Low Qualy Wines",
+            xlim = c(floor(min(df_vinho$citric.acid)),ceiling(max(df_vinho$citric.acid))))
+p8 <- qplot(data=subset(df_vinho, quality.group == "AVG"),
+            x= citric.acid, 
+            color =I('black'), 
+            fill=I('#5e2129'), 
+            main = "AVG wines",
+            xlim = c(floor(min(df_vinho$citric.acid)),ceiling(max(df_vinho$citric.acid))))
 
-grid.arrange(p1,p2,p3,p4,p5,p6, ncol=3)
+p9 <- qplot(data=subset(df_vinho, quality.group == "TOP"),
+            x= citric.acid, 
+            color =I('black'), 
+            fill=I('orange'), 
+            main = "Top Wines",
+            xlim = c(floor(min(df_vinho$citric.acid)),ceiling(max(df_vinho$citric.acid))))
+
+
+grid.arrange(p1,p2,p3,p4,p5,p6,p7,p8,p9, ncol=3)
+```
+Ácidex Fixa -> Maior concentração maior a qualidade
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+df_vinho %>%
+  group_by(quality.group) %>%
+  summarise( Mean = mean(fixed.acidity), Median = median(fixed.acidity), DevPad=sd(fixed.acidity))
+```
+Ácidex Volatil -> Menor concentração maior a qualidade
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+df_vinho %>%
+  group_by(quality.group) %>%
+  summarise( Mean = mean(volatile.acidity), Median = median(volatile.acidity), DevPad=sd(volatile.acidity))
+```
+Ácido Cítrico -> Maior concentração maior a qualidade
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+df_vinho %>%
+  group_by(quality.group) %>%
+  summarise( Mean = mean(citric.acid), Median = median(citric.acid), DevPad=sd(citric.acid))
 ```
 
 ## 2- Chloridios e Dioxido de Enxofre livre, não livre (nova variavel) e total
+Ajustei os limites dos gráficos pois tinham muitos outliers
 
-```{r echo=FALSE, message=FALSE, warning=FALSE, Univariate_Plots Tranformation}
-df_QualidadeVinhoTinto$not.free.sulfur.dioxide <- df_QualidadeVinhoTinto$total.sulfur.dioxide - df_QualidadeVinhoTinto$free.sulfur.dioxide
+```{r echo=FALSE, message=FALSE, warning=FALSE, Variavies.2}
+#residual.sugar
+p1 <- qplot(data=subset(df_vinho, quality.group == "LOW"),
+            x= residual.sugar, 
+            color =I('black'), 
+            fill=I('grey'), 
+            main = "Low Qualy Wines",
+            xlim = c(floor(min(df_vinho$residual.sugar)),quantile(df_vinho$residual.sugar,0.95)))
+p2 <- qplot(data=subset(df_vinho, quality.group == "AVG"),
+            x= residual.sugar, 
+            color =I('black'), 
+            fill=I('#5e2129'), 
+            main = "Vinhos Médios",
+            xlim = c(floor(min(df_vinho$residual.sugar)),quantile(df_vinho$residual.sugar,0.95)))
+
+p3 <- qplot(data=subset(df_vinho, quality.group == "TOP"),
+            x= residual.sugar, 
+            color =I('black'), 
+            fill=I('orange'), 
+            main = "Top Wines",
+            xlim = c(floor(min(df_vinho$residual.sugar)),quantile(df_vinho$residual.sugar,0.95)))
+
+#chlorides
+p4 <- qplot(data=subset(df_vinho, quality.group == "LOW"),
+            x= chlorides, 
+            color =I('black'), 
+            fill=I('grey'), 
+            main = "Low Qualy Wines",
+            xlim = c((min(df_vinho$chlorides)),(quantile(df_vinho$chlorides,0.95))))
+p5 <- qplot(data=subset(df_vinho, quality.group == "AVG"),
+            x= chlorides, 
+            color =I('black'), 
+            fill=I('#5e2129'), 
+            main = "AVG wines",
+            xlim = c((min(df_vinho$chlorides)),(quantile(df_vinho$chlorides,0.95))))
+
+p6 <- qplot(data=subset(df_vinho, quality.group == "TOP"),
+            x= chlorides, 
+            color =I('black'), 
+            fill=I('orange'), 
+            main = "Top Wines",
+            xlim = c((min(df_vinho$chlorides)),(quantile(df_vinho$chlorides,0.95))))
+
+grid.arrange(p1,p2,p3,p4,p5,p6, ncol=3)
 
 ```
-
-```{r echo=FALSE, message=FALSE, warning=FALSE, Univariate_Plots2}
-p1 <- qplot(data=df_QualidadeVinhoTinto, x= chlorides, color =I('black'), fill=I('#5e2129'))
-p2 <- qplot(data=df_QualidadeVinhoTinto, x= free.sulfur.dioxide, color =I('black'), fill=I('#5e2129'))
-p3 <- qplot(data=df_QualidadeVinhoTinto, x= not.free.sulfur.dioxide, color =I('black'), fill=I('#5e2129'))
-p4 <- qplot(data=df_QualidadeVinhoTinto, x= total.sulfur.dioxide, color =I('black'), fill=I('#5e2129'))
-grid.arrange(p1,p2,p3,p4, ncol=2)
+Açucar residaul -> Parece que é uma caracteristica que não é bem definida. Se analisarmos as mulheres e os homens tem gostos diferentes o que pode ter afetado a classificação de qualidade (mulheres tendem a gostar mais de vinhos mais doces, mas é uma especulação). Podemos refazer a analise tirando os outliers.
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+df_vinho %>%
+  group_by(quality.group) %>%
+  summarise( Mean = mean(residual.sugar), Median = median(residual.sugar), DevPad = sd(residual.sugar))
+```
+Clorideos -> Menor concentração caracteristica dos vinhos de melhor qualidade
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+df_vinho %>%
+  group_by(quality.group) %>%
+  summarise( Mean = mean(chlorides), Median = median(chlorides), DevPad = sd(chlorides))
 ```
 
-## 3- Densidade, sulfitos, açúcar residual e nivel de Alcool
+## 3 - Concentrações de Dioxido de enxofre e sulphatos.
+```{r echo=FALSE, message=FALSE, warning=FALSE, Variavies.3}
+#free.sulfur.dioxide
+p1 <- qplot(data=subset(df_vinho, quality.group == "LOW"),
+            x= free.sulfur.dioxide, 
+            color =I('black'), 
+            fill=I('grey'), 
+            main = "Low Qualy Wines",
+            xlim = c(floor(min(df_vinho$free.sulfur.dioxide)),(quantile(df_vinho$free.sulfur.dioxide,0.99))))
+p2 <- qplot(data=subset(df_vinho, quality.group == "AVG"),
+            x= free.sulfur.dioxide, 
+            color =I('black'), 
+            fill=I('#5e2129'), 
+            main = "Vinhos Médios",
+            xlim = c(floor(min(df_vinho$free.sulfur.dioxide)),(quantile(df_vinho$free.sulfur.dioxide,0.99))))
 
-```{r echo=FALSE, message=FALSE, warning=FALSE, Univariate_Plots3}
-p1 <- qplot(data=df_QualidadeVinhoTinto, x= density, color =I('black'), fill=I('#5e2129'))
-p2 <- qplot(data=df_QualidadeVinhoTinto, x= alcohol, color =I('black'), fill=I('#5e2129'))
-p3 <- qplot(data=df_QualidadeVinhoTinto, x= sulphates, color =I('black'), fill=I('#5e2129'))
-p4 <- qplot(data=df_QualidadeVinhoTinto, x= residual.sugar, color =I('black'), fill=I('#5e2129'))
-grid.arrange(p1,p2,p3,p4, ncol=2)
+p3 <- qplot(data=subset(df_vinho, quality.group == "TOP"),
+            x= free.sulfur.dioxide, 
+            color =I('black'), 
+            fill=I('orange'), 
+            main = "Top Wines",
+            xlim = c(floor(min(df_vinho$free.sulfur.dioxide)),(quantile(df_vinho$free.sulfur.dioxide,0.99))))
+
+#total.sulfur.dioxide
+p4 <- qplot(data=subset(df_vinho, quality.group == "LOW"),
+            x= total.sulfur.dioxide, 
+            color =I('black'), 
+            fill=I('grey'), 
+            main = "Low Qualy Wines",
+            xlim = c((min(df_vinho$total.sulfur.dioxide)),(quantile(df_vinho$total.sulfur.dioxide,0.99))))
+p5 <- qplot(data=subset(df_vinho, quality.group == "AVG"),
+            x= total.sulfur.dioxide, 
+            color =I('black'), 
+            fill=I('#5e2129'), 
+            main = "AVG wines",
+            xlim = c((min(df_vinho$total.sulfur.dioxide)),(quantile(df_vinho$total.sulfur.dioxide,0.99))))
+
+p6 <- qplot(data=subset(df_vinho, quality.group == "TOP"),
+            x= total.sulfur.dioxide, 
+            color =I('black'), 
+            fill=I('orange'), 
+            main = "Top Wines",
+            xlim = c((min(df_vinho$total.sulfur.dioxide)),(quantile(df_vinho$total.sulfur.dioxide,0.99))))
+#sulphates
+p7 <- qplot(data=subset(df_vinho, quality.group == "LOW"),
+            x= sulphates, 
+            color =I('black'), 
+            fill=I('grey'), 
+            main = "Low Qualy Wines",
+            xlim = c((min(df_vinho$sulphates)),(max(df_vinho$sulphates))))
+p8 <- qplot(data=subset(df_vinho, quality.group == "AVG"),
+            x= sulphates, 
+            color =I('black'), 
+            fill=I('#5e2129'), 
+            main = "AVG wines",
+            xlim = c((min(df_vinho$sulphates)),(max(df_vinho$sulphates))))
+
+p9 <- qplot(data=subset(df_vinho, quality.group == "TOP"),
+            x= sulphates, 
+            color =I('black'), 
+            fill=I('orange'), 
+            main = "Top Wines",
+            xlim = c((min(df_vinho$sulphates)),(max(df_vinho$sulphates))))
+
+
+grid.arrange(p1,p2,p3,p4,p5,p6,p7,p8,p9, ncol=3)
 ```
+
+Dioxido de Enxofre Livre (free.sulfur.dioxide) -> Sem muito a nos dizer.
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+df_vinho %>%
+  group_by(quality.group) %>%
+  summarise( Mean = mean(free.sulfur.dioxide), Median = median(free.sulfur.dioxide), DevPad = sd(free.sulfur.dioxide))
+```
+Dioxido de Enxofre Total (free.sulfur.dioxide) -> Sem muito a nos dizer.
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+df_vinho %>%
+  group_by(quality.group) %>%
+  summarise( Mean = mean(total.sulfur.dioxide), Median = median(total.sulfur.dioxide), DevPad = sd(total.sulfur.dioxide))
+```
+
+Sulfitos (sulphates) -> Já os sulfatos tem muito a nos dizer. Quanto maior a concetração na média melhor qualificado o vinho.
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+df_vinho %>%
+  group_by(quality.group) %>%
+  summarise( Mean = mean(sulphates), Median = median(sulphates), DevPad = sd(sulphates))
+```
+
+Nesse grupo teve destaque os sulphates, uma maior concetração em vinhos melhores. Em relação ou dioxido de enxofre vemos um outlier nos vinhos melhores, mas olhando o grafico vemos que como os outros grupos não tem tanta relevancia na qualidade.
+
+## 4- Densidade, pH e nivel de Alcool
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Variavies.4}
+#density
+p1 <- qplot(data=subset(df_vinho, quality.group == "LOW"),
+            x= density, 
+            color =I('black'), 
+            fill=I('grey'), 
+            main = "Low Qualy Wines",
+            
+            xlim = c((min(df_vinho$density)),(max(df_vinho$density))))
+p2 <- qplot(data=subset(df_vinho, quality.group == "AVG"),
+            x= density, 
+            color =I('black'), 
+            fill=I('#5e2129'), 
+            main = "Vinhos Médios",
+            xlim = c((min(df_vinho$density)),(max(df_vinho$density))))
+
+p3 <- qplot(data=subset(df_vinho, quality.group == "TOP"),
+            x= density, 
+            color =I('black'), 
+            fill=I('orange'), 
+            main = "Top Wines",
+            xlim = c((min(df_vinho$density)),(max(df_vinho$density))))
+
+#pH
+p4 <- qplot(data=subset(df_vinho, quality.group == "LOW"),
+            x= pH, 
+            color =I('black'), 
+            fill=I('grey'), 
+            main = "Low Qualy Wines",
+            xlim = c((min(df_vinho$pH)),(max(df_vinho$pH))))
+p5 <- qplot(data=subset(df_vinho, quality.group == "AVG"),
+            x= pH, 
+            color =I('black'), 
+            fill=I('#5e2129'), 
+            main = "AVG wines",
+            xlim = c((min(df_vinho$pH)),(max(df_vinho$pH))))
+
+p6 <- qplot(data=subset(df_vinho, quality.group == "TOP"),
+            x= pH, 
+            color =I('black'), 
+            fill=I('orange'), 
+            main = "Top Wines",
+            xlim = c((min(df_vinho$pH)),(max(df_vinho$pH))))
+#alcohol
+p7 <- qplot(data=subset(df_vinho, quality.group == "LOW"),
+            x= alcohol, 
+            color =I('black'), 
+            fill=I('grey'), 
+            main = "Low Qualy Wines",
+            xlim = c((min(df_vinho$alcohol)),(max(df_vinho$alcohol))))
+p8 <- qplot(data=subset(df_vinho, quality.group == "AVG"),
+            x= alcohol, 
+            color =I('black'), 
+            fill=I('#5e2129'), 
+            main = "AVG wines",
+            xlim = c((min(df_vinho$alcohol)),(max(df_vinho$alcohol))))
+
+p9 <- qplot(data=subset(df_vinho, quality.group == "TOP"),
+            x= alcohol, 
+            color =I('black'), 
+            fill=I('orange'), 
+            main = "Top Wines",
+            xlim = c((min(df_vinho$alcohol)),(max(df_vinho$alcohol))))
+
+
+grid.arrange(p1,p2,p3,p4,p5,p6,p7,p8,p9, ncol=3)
+```
+Densidade (density) -> Sem muito a nos dizer a primeira vista.
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+df_vinho %>%
+  group_by(quality.group) %>%
+  summarise( Mean = mean(density), Median = median(density), DevPad = sd(density))
+```
+Escala pH (pH) -> Vinhos com PH mais baixo, ou seja com maior acidez parecem ser melhores na média.
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+df_vinho %>%
+  group_by(quality.group) %>%
+  summarise( Mean = mean(pH), Median = median(pH), DevPad = sd(pH))
+```
+Nível alcoolico (alcohol) -> Vinhos com nível de alcool maior são melhor classificados.
+```{r echo=FALSE, message=FALSE, warning=FALSE}
+df_vinho %>%
+  group_by(quality.group) %>%
+  summarise( Mean = mean(alcohol), Median = median(alcohol), DevPad = sd(alcohol))
+```
+Podemos pelos gráficos notar que a densidade não parece influenciar muito (de forma direta), que o PH dos melhores vinhos é na media ligeriamente mais acido. Em relação ao nível de alcool os vinhos melhores tem nitidamente uma quantidade maior.
 
 # Análise Univariada
 
