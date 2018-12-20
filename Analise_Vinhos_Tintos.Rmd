@@ -668,6 +668,7 @@ ggplot( data = df_vinho.sub, aes(x=sulphates, y=alcohol.trans, color=quality.gro
   geom_jitter(alpha=1/2)+
   stat_smooth(method = "lm", col = "red") 
 ```
+
 ```{r echo=FALSE, message=FALSE, warning=FALSE, Multivariate_Plots2}
 ggplot( data = df_vinho.sub, aes(x=sulphates, y=alcohol.trans))+
   geom_line(aes(color=quality.group), stat='summary', fun.y= median)
@@ -684,15 +685,18 @@ ggplot(data=df_vinho.sub, aes(x=alcohol.trans, y= sulphates, color= quality.grou
 # Análise Multivariada
 
 ### Discuta sobre os relacionamentos observados nesta parte da investigação. Quais atributos que fortaleceram os demais na observação das variáveis de interesse?
+Existem substancias no vinho que tem relação com a qualidade do vinho e outras que não podemos ver que algumas são independentes de outras e outras dependentes. Isso pode ser importante na hora de fazer o blend de um vinho tinto. Maoria dos vinhos hoje comerciais são ajustados quimicamente (com diferentes uvas).
 
 ### InteraÃ§Ãµes surpreendentes e/ou interessantes foram encontradas entre os atributos?
+Achei interessante achar uma variaveis dependentes e outras independentes (podemos ver pelo graficos aqui nessa seção)
 
 ### OPCIONAL: Modelos foram criados usando este conjunto de dados? Discuta sobre os pontos fortes e as limitaÃ§Ãµes do seu modelo.
+Modelo com R^2 baixo. Talvez mais tempo para adaptar ou filtrar o dataset dos outliers.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, Ana_MultuVariada}
 m1 <- lm(I(quality) ~ I(alcohol.trans), data= df_vinho.sub)
 m2 <- update(m1, ~ . + sulphates)
-m3 <- update(m2, ~ . + volatile.acidity.trans )
+m3 <- update(m2, ~ . + -volatile.acidity.trans )
 m4 <- update(m3, ~ . + citric.acid)
 m5 <- update(m4, ~ . + chlorides)
 m6 <- update(m5, ~ . + fixed.acidity)
@@ -764,3 +768,8 @@ Gráfico Acido Citrico x Sulfatos agrupado pela qualidade do vinho. Pelo gráfic
 ------
 
 # Reflexão
+
+Pelos dados que temos podemos notar que a qualidade de um vinho tinto não depende exclusivamente de 1 ou poucas variaveis. Assim como é muito dificil prever a qualidade de um vinho somente pela propriedades quimicas que temos nos nossos atributos. Talvez quando comparado entre safras diferentes ou mesmo tipo de uva esses atributos possom cria um modelo com boa chances de uma previsão acertada.
+Seria interessante ter mais dados e mais atributos. O preço também é um determinante importante. Como foi feito a qualificação dos vinhos pode influenciar bastante no resultado.
+O interessante do projeto foi rever todos os conceitos dado no curso de EDA.
+Acho que não fui feliz no dataset para construir um modelo preditivo, um R^2 muito baixo (0,34), o modelo poderia ser usado para prever a qualidade contraria com melhor propriedade.
