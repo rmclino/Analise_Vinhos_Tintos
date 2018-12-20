@@ -5,8 +5,9 @@ output:
 ---
 # Análise de Vinhos Tinto
 
-> por Ricardo Lino
+
 ========================================================
+> por Ricardo Lino
 > Descrição do Conjunto de Dados escolhido: Este conjunto de dados contém 1.599 vinhos tintos com 11 variáveis de propriedades químicas do vinho. Ao menos 3 especialistas em vinhos avaliaram cada vinho, fornecendo uma nota entre 0 (muito ruim) e 10 (muito excelente).
 
 Questão Guia: Quais propriedades químicas influenciam a qualidade dos vinhos tintos?
@@ -18,12 +19,17 @@ Author:
     Modeling wine preferences by data mining from physicochemical properties.
     In Decision Support Systems, Elsevier, 47(4):547-553. ISSN: 0167-9236.
 
-```{r echo=FALSE, message=FALSE, warning=FALSE, packages}
+```{r echo=FALSE, message=FALSE, warning=FALSE, Leitura_Pacotes}
 # Carregue aqui todos os pacotes utilizados na sua analise realizada neste arquivo fonte.
 library(ggplot2)
 library(dplyr)
 library(gridExtra)
-library(grid)
+#library(grid)
+library(rcompanion)
+#library(reshape2)
+library(GGally)
+#library(scales)
+library(memisc)
 
 # Note que o parâmetro "echo" foi definido como FALSE neste código.
 #OK
@@ -31,44 +37,52 @@ library(grid)
 # Você deve definir echo=FALSE para todos os blocos de código no seu arquivo.
 ```
 
-```{r echo=FALSE, message=FALSE, warning=FALSE, Load_the_Data}
+```{r echo=FALSE, message=FALSE, warning=FALSE, Leitura_Dados}
 # Carregamento dos dados
 data_path <- "C:\\Users\\Ricardo\\OneDrive\\____UDACITY\\_DATA_SCIENTIST\\EDA_Course_Materials\\Analise_Vinhos_Tintos"
 setwd(data_path)
 df_vinho <- read.csv('wineQualityReds.csv')
 ```
 
-```{r echo=FALSE, message=FALSE, warning=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE, Estrutura_Dados}
 
-print("Dimensão dos dados:")
-dim(df_vinho)
-print("Estrutura dos Dados:")
-str(df_vinho)
-print("Sumário dos Dados:")
+print(paste("Dimensão dos dados: ",dim(df_vinho)))
+print(paste("Estrutura dos Dados: ", str(df_vinho)))
 summary(df_vinho)
 names <- names(df_vinho)
 ```
 
-## Informações dos Atributos (em Inglês)
+## Informações dos Atributos
 
-1 - fixed acidity - acidos não volateis presentes no vinho.
-2 - volatile acidity - a quantidade de acido acetico, que em grau elevado pode levar a um sabor não agradavel (gosto de vinagre).
-3 - citric acid - encontrado em pequenas quantidade pode dar leveza e sabor ao vinhuo.
-4 - residual sugar - o açucar encontrado no vinho após o final da fermentação. Raro encontrar vinhos com menos de 1 grama por litro. Vinhos com mais d 45 gramas por litro são considerados doces.
-5 - chlorides - a quantidade de sal no vinho.
-6 - free sulfur dioxide - dióxido de enxofre livre no vinho. Previne a oxidação do vinho a a proliferação de microorganismos.
-7 - total sulfur dioxide - total de dióxido de enxofre no vinho. Concentraçãoes acima de 50 ppm se tornam evidente ao cheirar e provar o vinho.
-8 - density - densidade do vinho.
+1 - fixed acidity (tartaric acid - g / dm^3) - acidos não volateis presentes no vinho.
+
+2 - volatile acidity (acetic acid - g / dm^3) - a quantidade de acido acetico, que em grau elevado pode levar a um sabor não agradavel (gosto de vinagre).
+
+3 - citric acid (g / dm^3) - encontrado em pequenas quantidade pode dar leveza e sabor ao vinhuo.
+
+4 - residual sugar (g / dm^3) - o açucar encontrado no vinho após o final da fermentação. Raro encontrar vinhos com menos de 1 grama por litro. Vinhos com mais d 45 gramas por litro são considerados doces.
+
+5 - chlorides (sodium chloride - g / dm^3)- a quantidade de sal no vinho.
+
+6 - free sulfur dioxide (mg / dm^3) - dióxido de enxofre livre no vinho. Previne a oxidação do vinho a a proliferação de microorganismos.
+
+7 - total sulfur dioxide (mg / dm^3)- total de dióxido de enxofre no vinho. Concentraçãoes acima de 50 ppm se tornam evidente ao cheirar e provar o vinho.
+
+8 - density (g / cm^3) - densidade do vinho.
+
 9 - pH - nivel de acidez do vinho, de 0 a muito ácido até 14 muito básico. A maioria dos vinhos esta numa faixa entre 3-4 na escala de ph.
-10 - sulphates - um aditivo ao vinho que contribui para preservar o vinho.
-11 - alcohol - % de alcool no vinho
-Output variable (based on sensory data): Quality (score between 0 and 10) - qualidade do vinho de 0 a 10.
+
+10 - sulphates (potassium sulphate - g / dm3) - um aditivo ao vinho que contribui para preservar o vinho.
+
+11 - alcohol (potassium sulphate - g / dm3) - % de alcool no vinho
+
+12 - quality (score between 0 and 10) - Variável se Saída - qualidade do vinho de 0 a 10.
 
 ## Seção de Gráficos Univariados
 
 ### Qualidade do Vinho
 
-```{r echo=FALSE, message=FALSE, warning=FALSE, Quality}
+```{r echo=FALSE, message=FALSE, warning=FALSE, Analise_Distribuicao_qualidade}
 qplot(data=df_vinho, x= quality, color =I('black'), fill=I('#5e2129'), binwidth=1)
 table(df_vinho$quality)
 summary(df_vinho$quality)
@@ -77,24 +91,60 @@ Observações: Uma aproximação de uma curva normal assimetrica, com skewness n
 
 ### SEÇÂO DE GRÀFICOS UNIVARIADOS
 Primeiro vamos dar uma olhada geral na distribuição das variaveis do nosso data set. Assim podemos conhecer melhor o que temos e direcionar nossa analise
-```{r echo=FALSE, message=FALSE, warning=FALSE,}
+```{r echo=FALSE, message=FALSE, warning=FALSE, Plotagem_distribuicoes}
 
 plots <- list()
 for(name in names){
-print(qplot(x=df_vinho[,name], 
-            color =I('black'), 
-            fill=I('#5e2129'), 
-            xlab= name)
+(plotNormalHistogram(df_vinho[,name], 
+            linecol =I('black'), 
+            col=I('#5e2129'),
+            main = name
+            )
 )
 }
 ```
+
+### Tranformação de algumas variaveis
+Eu elegi o nível de alcool, pH, sulfitos, acidez volatil e fixa e acido citrico.
+Transforma o nível de alcool, acidez volatil e fixa por uma Log. E o acido citrico pelo Tukey (tem valores zero)
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Trasnformacoes}
+# Por log 
+df_vinho$alcohol.trans <- log(df_vinho$alcohol)
+print(plotNormalHistogram(df_vinho$alcohol.trans, 
+            linecol =I('black'), 
+            col=I('#5e2129'),
+            main = "alcohol.trans"
+            ))
+# Pela raiz qauadrada
+df_vinho$fixed.acidity.trans <- sqrt(df_vinho$fixed.acidity)
+print(plotNormalHistogram(df_vinho$fixed.acidity.trans, 
+            linecol =I('black'), 
+            col=I('#5e2129'),
+            main = "fixed.acidity.trans"
+            ))
+df_vinho$volatile.acidity.trans <- sqrt(df_vinho$volatile.acidity)
+print(plotNormalHistogram(df_vinho$volatile.acidity.trans, 
+            linecol =I('black'), 
+            col=I('#5e2129'),
+            main = "volatile.acidity.trans"
+            ))
+df_vinho$citric.acid.trans <- (df_vinho$citric.acid)^(1/2)
+print(plotNormalHistogram(df_vinho$citric.acid.trans, 
+            linecol =I('black'), 
+            col=I('#5e2129'),
+            main = "citric.acid.trans"
+            ))
+```
+
+
 
 
 ### Criação de uma nova variável categorica
 Como me interessou ver o que influencia na classificacao de um vinho bom. Pensei em analisar o que diferencia um vinho bom da media, e tab o que diferencia um vinho ruim.
 Agrupei classificando os vinhos em LOW, AVG e TOP. Com base no summario de dados de qualidade, vamos pegar os vinho com menor qualidade do 1o quantil e maior classificação do que o 3o quantil e classifica-los.
 
-```{r echo=FALSE, message=FALSE, warning=FALSE, CriarGrupoQualidade}
+```{r echo=FALSE, message=FALSE, warning=FALSE, Cria_Grupo_Qualidade}
 df_vinho$quality.group <- ifelse(df_vinho$quality > 6,"TOP",
                                  ifelse(df_vinho$quality < 5,"LOW", "AVG"))
 
@@ -105,7 +155,7 @@ table(df_vinho$quality.group)
 Sabemos que a classificação de um vinho leva em conta também o fator preço, que não temos no nosso dataset, por isso temos de tomar cuidado, as vezes um bom vinho em um preço não é um bom vinho a um nivel de preço mais alto. Mas mesmo assim vamos continuar nossa analise e escolher alguma variaveis para nosso estudo.
 
 ### 1- Acidos e acidez dos Vinhos
-```{r echo=FALSE, message=FALSE, warning=FALSE, Variavies.1}
+```{r echo=FALSE, message=FALSE, warning=FALSE, Variavies_1}
 #fixed.acidity
 p1 <- qplot(data=subset(df_vinho, quality.group == "LOW"),
             x= fixed.acidity, 
@@ -172,28 +222,58 @@ p9 <- qplot(data=subset(df_vinho, quality.group == "TOP"),
 grid.arrange(p1,p2,p3,p4,p5,p6,p7,p8,p9, ncol=3)
 ```
 Ácidex Fixa -> Maior concentração maior a qualidade
-```{r echo=FALSE, message=FALSE, warning=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE, groupBy_Variaveis_1_1}
 df_vinho %>%
   group_by(quality.group) %>%
   summarise( Mean = mean(fixed.acidity), Median = median(fixed.acidity), DevPad=sd(fixed.acidity))
 ```
-Ácidex Volatil -> Menor concentração maior a qualidade
-```{r echo=FALSE, message=FALSE, warning=FALSE}
+Ácidez Volatil -> Menor concentração maior a qualidade
+```{r echo=FALSE, message=FALSE, warning=FALSE, groupBy_Variaveis_1_2}
 df_vinho %>%
   group_by(quality.group) %>%
   summarise( Mean = mean(volatile.acidity), Median = median(volatile.acidity), DevPad=sd(volatile.acidity))
 ```
 Ácido Cítrico -> Maior concentração maior a qualidade
-```{r echo=FALSE, message=FALSE, warning=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE, groupBy_Variaveis_1_3}
 df_vinho %>%
   group_by(quality.group) %>%
   summarise( Mean = mean(citric.acid), Median = median(citric.acid), DevPad=sd(citric.acid))
 ```
+Acidez Fixa + Volatil -> Vamos somar as duas e ver se elas podem ser usadas em conjunto.
+```{r echo=FALSE, message=FALSE, warning=FALSE, Variaveis_1_2}
+df_vinho$total.acidity <- df_vinho$fixed.acidity + df_vinho$volatile.acidity
+#total.acidity
+p1 <- qplot(data=subset(df_vinho, quality.group == "LOW"),
+            x= total.acidity, 
+            color =I('black'), 
+            fill=I('grey'), 
+            main = "Low Qualy Wines",
+            xlim = c(floor(min(df_vinho$total.acidity)),ceiling(max(df_vinho$total.acidity))))
+p2 <- qplot(data=subset(df_vinho, quality.group == "AVG"),
+            x= total.acidity, 
+            color =I('black'), 
+            fill=I('#5e2129'), 
+            main = "Vinhos Médios",
+            xlim = c(floor(min(df_vinho$total.acidity)),ceiling(max(df_vinho$total.acidity))))
 
-## 2- Chloridios e Dioxido de Enxofre livre, não livre (nova variavel) e total
+p3 <- qplot(data=subset(df_vinho, quality.group == "TOP"),
+            x= total.acidity, 
+            color =I('black'), 
+            fill=I('orange'), 
+            main = "Top Wines",
+            xlim = c(floor(min(df_vinho$total.acidity)),ceiling(max(df_vinho$total.acidity))))
+grid.arrange(p1,p2,p3,ncol=3)
+```
+Acidez Total -> Descartei essa variavel pois aumenta muito a variancia
+```{r echo=FALSE, message=FALSE, warning=FALSE, groupBy_Variaveis_1_2_1}
+df_vinho %>%
+  group_by(quality.group) %>%
+  summarise( Mean = mean(total.acidity), Median = median(total.acidity), DevPad=sd(total.acidity))
+```
+### 2- Chloridios e Dioxido de Enxofre livre, não livre (nova variavel) e total
 Ajustei os limites dos gráficos pois tinham muitos outliers
 
-```{r echo=FALSE, message=FALSE, warning=FALSE, Variavies.2}
+```{r echo=FALSE, message=FALSE, warning=FALSE, Variaveis_2}
 #residual.sugar
 p1 <- qplot(data=subset(df_vinho, quality.group == "LOW"),
             x= residual.sugar, 
@@ -240,20 +320,20 @@ grid.arrange(p1,p2,p3,p4,p5,p6, ncol=3)
 
 ```
 Açucar residaul -> Parece que é uma caracteristica que não é bem definida. Se analisarmos as mulheres e os homens tem gostos diferentes o que pode ter afetado a classificação de qualidade (mulheres tendem a gostar mais de vinhos mais doces, mas é uma especulação). Podemos refazer a analise tirando os outliers.
-```{r echo=FALSE, message=FALSE, warning=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE, groupBy_Variaveis_2_1}
 df_vinho %>%
   group_by(quality.group) %>%
   summarise( Mean = mean(residual.sugar), Median = median(residual.sugar), DevPad = sd(residual.sugar))
 ```
 Clorideos -> Menor concentração caracteristica dos vinhos de melhor qualidade
-```{r echo=FALSE, message=FALSE, warning=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE, groupBy_Variaveis_2_2}
 df_vinho %>%
   group_by(quality.group) %>%
   summarise( Mean = mean(chlorides), Median = median(chlorides), DevPad = sd(chlorides))
 ```
 
-## 3 - Concentrações de Dioxido de enxofre e sulphatos.
-```{r echo=FALSE, message=FALSE, warning=FALSE, Variavies.3}
+### 3 - Concentrações de Dioxido de enxofre e sulphatos.
+```{r echo=FALSE, message=FALSE, warning=FALSE, Variaveis_3}
 #free.sulfur.dioxide
 p1 <- qplot(data=subset(df_vinho, quality.group == "LOW"),
             x= free.sulfur.dioxide, 
@@ -321,20 +401,20 @@ grid.arrange(p1,p2,p3,p4,p5,p6,p7,p8,p9, ncol=3)
 ```
 
 Dioxido de Enxofre Livre (free.sulfur.dioxide) -> Sem muito a nos dizer.
-```{r echo=FALSE, message=FALSE, warning=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE, groupBy_Variaveis_3_1}
 df_vinho %>%
   group_by(quality.group) %>%
   summarise( Mean = mean(free.sulfur.dioxide), Median = median(free.sulfur.dioxide), DevPad = sd(free.sulfur.dioxide))
 ```
 Dioxido de Enxofre Total (free.sulfur.dioxide) -> Sem muito a nos dizer.
-```{r echo=FALSE, message=FALSE, warning=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE, groupBy_Variaveis_3_2}
 df_vinho %>%
   group_by(quality.group) %>%
   summarise( Mean = mean(total.sulfur.dioxide), Median = median(total.sulfur.dioxide), DevPad = sd(total.sulfur.dioxide))
 ```
 
 Sulfitos (sulphates) -> Já os sulfatos tem muito a nos dizer. Quanto maior a concetração na média melhor qualificado o vinho.
-```{r echo=FALSE, message=FALSE, warning=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE, groupBy_Variaveis_3_3}
 df_vinho %>%
   group_by(quality.group) %>%
   summarise( Mean = mean(sulphates), Median = median(sulphates), DevPad = sd(sulphates))
@@ -342,9 +422,35 @@ df_vinho %>%
 
 Nesse grupo teve destaque os sulphates, uma maior concetração em vinhos melhores. Em relação ou dioxido de enxofre vemos um outlier nos vinhos melhores, mas olhando o grafico vemos que como os outros grupos não tem tanta relevancia na qualidade.
 
-## 4- Densidade, pH e nivel de Alcool
+Acidez Fixa + Volatiol -> Vamos somar as duas e ver se elas podem ser usadas em conjunto.
+```{r echo=FALSE, message=FALSE, warning=FALSE, Variaveis_3_1}
+df_vinho$fixed.sulfur.dioxide <- log( df_vinho$total.sulfur.dioxide - df_vinho$free.sulfur.dioxide)
+#total.acidity
+p1 <- qplot(data=subset(df_vinho, quality.group == "LOW"),
+            x= fixed.sulfur.dioxide, 
+            color =I('black'), 
+            fill=I('grey'), 
+            main = "Low Qualy Wines",
+            xlim = c(floor(min(df_vinho$fixed.sulfur.dioxide)),ceiling(max(df_vinho$fixed.sulfur.dioxide))))
+p2 <- qplot(data=subset(df_vinho, quality.group == "AVG"),
+            x= fixed.sulfur.dioxide, 
+            color =I('black'), 
+            fill=I('#5e2129'), 
+            main = "Vinhos Médios",
+            xlim = c(floor(min(df_vinho$fixed.sulfur.dioxide)),ceiling(max(df_vinho$fixed.sulfur.dioxide))))
 
-```{r echo=FALSE, message=FALSE, warning=FALSE, Variavies.4}
+p3 <- qplot(data=subset(df_vinho, quality.group == "TOP"),
+            x= fixed.sulfur.dioxide, 
+            color =I('black'), 
+            fill=I('orange'), 
+            main = "Top Wines",
+            xlim = c(floor(min(df_vinho$fixed.sulfur.dioxide)),ceiling(max(df_vinho$fixed.sulfur.dioxide))))
+grid.arrange(p1,p2,p3,ncol=3)
+summary(df_vinho$fixed.sulfur.dioxide)
+```
+### 4- Densidade, pH e nivel de Alcool
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Variaveis_4}
 #density
 p1 <- qplot(data=subset(df_vinho, quality.group == "LOW"),
             x= density, 
@@ -389,42 +495,42 @@ p6 <- qplot(data=subset(df_vinho, quality.group == "TOP"),
             xlim = c((min(df_vinho$pH)),(max(df_vinho$pH))))
 #alcohol
 p7 <- qplot(data=subset(df_vinho, quality.group == "LOW"),
-            x= alcohol, 
+            x= alcohol.trans, 
             color =I('black'), 
             fill=I('grey'), 
             main = "Low Qualy Wines",
-            xlim = c((min(df_vinho$alcohol)),(max(df_vinho$alcohol))))
+            xlim = c((min(df_vinho$alcohol.trans)),(max(df_vinho$alcohol.trans))))
 p8 <- qplot(data=subset(df_vinho, quality.group == "AVG"),
-            x= alcohol, 
+            x= alcohol.trans, 
             color =I('black'), 
             fill=I('#5e2129'), 
             main = "AVG wines",
-            xlim = c((min(df_vinho$alcohol)),(max(df_vinho$alcohol))))
+            xlim = c((min(df_vinho$alcohol.trans)),(max(df_vinho$alcohol.trans))))
 
 p9 <- qplot(data=subset(df_vinho, quality.group == "TOP"),
-            x= alcohol, 
+            x= alcohol.trans, 
             color =I('black'), 
             fill=I('orange'), 
             main = "Top Wines",
-            xlim = c((min(df_vinho$alcohol)),(max(df_vinho$alcohol))))
+            xlim = c((min(df_vinho$alcohol.trans)),(max(df_vinho$alcohol.trans))))
 
 
 grid.arrange(p1,p2,p3,p4,p5,p6,p7,p8,p9, ncol=3)
 ```
 Densidade (density) -> Sem muito a nos dizer a primeira vista.
-```{r echo=FALSE, message=FALSE, warning=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE,groupBy_Variaveis_4_1}
 df_vinho %>%
   group_by(quality.group) %>%
   summarise( Mean = mean(density), Median = median(density), DevPad = sd(density))
 ```
 Escala pH (pH) -> Vinhos com PH mais baixo, ou seja com maior acidez parecem ser melhores na média.
-```{r echo=FALSE, message=FALSE, warning=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE,groupBy_Variaveis_4_2}
 df_vinho %>%
   group_by(quality.group) %>%
   summarise( Mean = mean(pH), Median = median(pH), DevPad = sd(pH))
 ```
 Nível alcoolico (alcohol) -> Vinhos com nível de alcool maior são melhor classificados.
-```{r echo=FALSE, message=FALSE, warning=FALSE}
+```{r echo=FALSE, message=FALSE, warning=FALSE,groupBy_Variaveis_4_3}
 df_vinho %>%
   group_by(quality.group) %>%
   summarise( Mean = mean(alcohol), Median = median(alcohol), DevPad = sd(alcohol))
@@ -433,7 +539,7 @@ Podemos pelos gráficos notar que a densidade não parece influenciar muito (de 
 
 # Análise Univariada
 
-## Qual a estrutura do conjunto de Dados?
+### Qual a estrutura do conjunto de Dados?
 Existem 1599 vinhos no nosso _dataset_ com um índice (X) e com 11 atributos e um _output_ quality.
 Adcionei um agrupamento por nível de qualidade para poder destacar caracteristicas mais marcantes nos vinho de baixa, media e alta qualidade.
 A maioria dos vinho, 1319 foram classificados como médios _AVG_, 63 (4%) como de baixa qualidade _LOW_ e 217 (13,6%) como de alta qualidade _TOP_. 
@@ -442,37 +548,136 @@ LOW | AVG  | TOP
  63 | 1319 | 217
 
 Outras observaçães.
- - A distribuição da qualidade dos vinhos se aproxima de uma normal com skew positivo
- - 
+ - A distribuição da qualidade dos vinhos se aproxima de uma normal com skew positivo.
+ - O pH do vinhos é na média 3,3, os vinho tintos são tem alta acidez.
+ - Nem todos os vinhos possuem ácido cítrico, é a unica propriedade onde tivemos o 0.
  
+### Quais são os principais atributos de interesse deste conjunto de dados?
+
+O meu atributo principal de analise é a qualidade do vinho.
 
 ### Quais outros atributos você acha que podem lhe auxiliar na investigação destes atributos de interesse?
 
+Eu elegi o nível de alcool, sulfitos, acidez volatil e fixa e acido citrico.
+
 ### Você criou novas variáveis a partir dos atributos existentes no conjunto de dados?
+Criei duas novas variaveis:
+1 - Agrupei os dados em uma varivale categorica quality.group, tendo 3 fatores ordenados com levels = ("LOW","AVG","TOP").
+2 - Criei uma variavel continua total.acidity para analisar se a soma das acidez tinha menor variancia do que em separado e poder usar no modelo de regressão para prever a qualidade do vinho, mas descartei.
+3 - Criei a variavel fixed.sulfur.dioxide subtraindo a total.fixed.sulfur da volatile.sulfur.
 
 ### Dos atributos investigados, distribuiÃ§Ãµes incomuns foram encontradas? Você aplicou operaÃ§Ãµes nos dados para limpá-los, ajustá-los ou mudar a forma dos dados? Se sim, por quê?
-
-
+Sim encontrei algumas distribuições fora da normal e com ske positivo,  apliquei tranformações com log e raiz quadrada
 
 # Seção de Gráficos Bivariados
-```{r echo=FALSE, Bivariate_Plots}
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Subset}
+atributos_estudados = c("alcohol.trans","volatile.acidity.trans","sulphates","fixed.sulfur.dioxide","citric.acid","fixed.acidity","chlorides","quality","quality.group")
+df_vinho.sub <- df_vinho[,atributos_estudados]
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Correlacoes_qualidade}
+panel.hist <- function(x, ...)
+{
+  usr <- par("usr"); on.exit(par(usr))
+  par(usr = c(usr[1:2], 0, 1.5) )
+  h <- hist(x, plot = FALSE)
+  breaks <- h$breaks; nB <- length(breaks)
+  y <- h$counts; y <- y/max(y)
+  rect(breaks[-nB], 0, breaks[-1], y, col = "cyan", ...)
+}
+panel.cor <- function(x, y, digits = 2, prefix = "", cex.cor, ...)
+{
+  usr <- par("usr"); on.exit(par(usr))
+  par(usr = c(0, 1, 0, 1))
+  r <- abs(cor(x, y))
+  txt <- format(c(r, 0.123456789), digits = digits)[1]
+  txt <- paste0(prefix, txt)
+  if(missing(cex.cor)) cex.cor <- 0.8/strwidth(txt)
+  text(0.5, 0.5, txt, cex = cex.cor * r)
+}
+pairs(df_vinho.sub, diag.panel = panel.hist, upper.panel = panel.cor,
+      lower.panel = panel.smooth)
+#for(name in names(df_vinho)){
+#  
+#  print( paste(name, " x quality:", cor(df_vinho$quality, as.numeric(df_vinho[,name])) ))
+#}
+```
+
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Bivariate_Plots}
+ggpairs(df_vinho.sub, 
+  lower = list(continuous = wrap("points", shape = I('.'))), 
+  upper = list(combo = wrap("box", outlier.shape = I('.'))))
+ggsave('ggpair.pdf')
+```
+
+
+Gráfico Multivariado 1
+```{r echo=FALSE, message=FALSE, warning=FALSE, Multivariado1}
+ggplot( data = df_vinho.sub, aes(x=alcohol.trans, y=volatile.acidity.trans))+
+  geom_point()+
+  stat_smooth(method = "lm", col = "red") 
+```
+
+Gráfico Multivariado 2
+```{r echo=FALSE, message=FALSE, warning=FALSE, Multivariado2}
+ggplot( data = df_vinho.sub, aes(y=alcohol.trans, x=quality))+
+  geom_jitter(alpha=1/5)+
+  stat_smooth(method = "lm", col = "red") 
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Multivariado2_2}
+ggplot( data = df_vinho.sub, aes(y=alcohol.trans, x=quality.group))+
+  geom_boxplot()+
+  geom_jitter(alpha=1/10, color='blue')
+  
+
 
 ```
 
+Gráfico Multivariado 3
+```{r echo=FALSE, message=FALSE, warning=FALSE, Multivariado3}
+ggplot( data = df_vinho.sub, aes(x=fixed.acidity, y=citric.acid))+
+  geom_jitter(alpha=1/5)+
+  stat_smooth(method = "lm", col = "red") 
+```
+Indica que a acidez do vinho vem em parte do acido citrico.
 # Análise Bivariada
+```{r echo=FALSE, message=FALSE, warning=FALSE, Bivariada}
+cor.test(df_vinho.sub$fixed.acidity, df_vinho.sub$citric.acid)
+```
 
 ### Discuta sobre alguns dos relacionamentos observados nesta parte da investigação. Como os atributos de interesse variaram no conjunto de dados?
+Nenhuma variavel tem uma correlação forte. Encontramos o nivel do alcool proximo a uma correl de 0,5.
+O que indica que a qualidade do vinho é um somatorio de atributos.
 
 ### Você observou algum relacionamento interessante entre os outros atributos (os que não são de interesse)?
+Notei que o acido citrico se correlaciona de maneira mais forte com a acidez fixa. São variaveis que não são idenpendentes.
 
 ### Qual foi o relacionamento mais forte encontrado?
-
-
+O relacionamento mais forte encontrado foi entre o acido citrico e a acidez fixa. Depois o nivel de alcool com a qualidade.
 
 
 # Seção de Gráficos Multivariados
 
-```{r echo=FALSE, Multivariate_Plots}
+```{r echo=FALSE, message=FALSE, warning=FALSE, Multivariate_Plots1}
+ggplot( data = df_vinho.sub, aes(x=sulphates, y=alcohol.trans, color=quality.group))+
+  geom_jitter(alpha=1/2)+
+  stat_smooth(method = "lm", col = "red") 
+```
+```{r echo=FALSE, message=FALSE, warning=FALSE, Multivariate_Plots2}
+ggplot( data = df_vinho.sub, aes(x=sulphates, y=alcohol.trans))+
+  geom_line(aes(color=quality.group), stat='summary', fun.y= median)
+```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, Multivariate_Plots3}
+ggplot(data=df_vinho.sub, aes(x=alcohol.trans, y= sulphates, color= quality.group))+
+  geom_boxplot()+
+  stat_summary(fun.y = mean, geom= 'point', shape =4)
+
 
 ```
 
@@ -484,32 +689,77 @@ Outras observaçães.
 
 ### OPCIONAL: Modelos foram criados usando este conjunto de dados? Discuta sobre os pontos fortes e as limitaÃ§Ãµes do seu modelo.
 
+```{r echo=FALSE, message=FALSE, warning=FALSE, Ana_MultuVariada}
+m1 <- lm(I(quality) ~ I(alcohol.trans), data= df_vinho.sub)
+m2 <- update(m1, ~ . + sulphates)
+m3 <- update(m2, ~ . + volatile.acidity.trans )
+m4 <- update(m3, ~ . + citric.acid)
+m5 <- update(m4, ~ . + chlorides)
+m6 <- update(m5, ~ . + fixed.acidity)
+
+mtable(m1,m2,m3,m4,m5,m6)
+
+```
+
 ------
 
 # Gráficos Finais e Sumário
 
 ### Primeiro Gráfico
-```{r echo=FALSE, Plot_One}
-
+```{r echo=FALSE, message=FALSE, warning=FALSE, Plot1}
+ggplot(df_vinho.sub, aes(alcohol.trans),
+       xlab ="Alcohol content (%)",
+      ylab= "Number of wines")+
+  geom_histogram(binwidth = 0.1, color =I('black'),fill=I('#5e2129')) +
+  geom_vline(xintercept = median(df_vinho.sub$alcohol.trans), color = 'darkblue') +
+  annotate('text',
+           x = median(df_vinho.sub$alcohol.trans) - 0.15,
+           y = 500,
+           label = paste('median\n(', round(median(df_vinho.sub$alcohol.trans),3), ')', sep = ''),
+           color = 'darkblue') +
+  geom_vline(xintercept = mean(df_vinho.sub$alcohol.trans), color = I('darkgreen')) +
+  annotate('text',
+           x = mean(df_vinho.sub$alcohol) + 0.1,
+           y = 500,
+           label = paste('mean\n(', round(mean(df_vinho.sub$alcohol.trans), 3), ')', sep = ''),
+           color = 'darkgreen') +
+  ggtitle("Distribuição do Logaritimo do Percentual de Alcool presente nos Vinhos")
+  
 ```
 
 ### Descrição do Primeiro Gráfico
-
+Gráfico da distribuição transformada do percentual de alcool encontrada nos vinhos da amostra. Foi adcionada duas linha verticais com a media e a mediana desse distribuição.
 
 ### Segundo Gráfico
-```{r echo=FALSE, Plot_Two}
-
+```{r echo=FALSE, message=FALSE, warning=FALSE, Plot2}
+ggplot( data = df_vinho.sub, aes(x=fixed.acidity, y=citric.acid)) +
+  geom_point(alpha = 1/5, color = I('#5e2129')) +
+  scale_x_continuous(limits= c(min(df_vinho.sub$fixed.acidity),quantile(df_vinho.sub$fixed.acidity,0.99)))+
+  scale_y_continuous(limits= c(min(df_vinho.sub$citric.acid),quantile(df_vinho.sub$citric.acid,0.99)))+
+  geom_smooth(method = "lm") +
+  ggtitle("Acido Cítrico vs Acidez Fixa") +
+  xlab("Acidez Fixa ") +
+  ylab("Acido Cítrico")
 ```
 
 ### Descrição do Segundo Gráfico
-
+O segundo gráfico, Acido Citrico x Acidez fixa mostra uma relação forte podendo considera-las variaveis dependentes. O que faz sentido porque estão relacionada a acidez.
 
 ### Terceiro Gráfico
-```{r echo=FALSE, Plot_Three}
-
+```{r echo=FALSE, message=FALSE, warning=FALSE, Plot3}
+ggplot( data = df_vinho.sub, aes(x=sulphates, y=citric.acid, color=quality.group))+
+  geom_jitter(alpha=1/2) +
+  coord_cartesian(xlim=c(0.5,1))+
+  scale_color_brewer(name= "Quality Group",type="qual",palette  = 'GnBu' )+
+  ggtitle(" Citric acid x Sulphates grouped by Quality")+
+  theme(plot.title = element_text(hjust=0.5,lineheight=.8, face="bold"))+
+  xlab("Sulphates")+
+  ylab("Citric acid")
+```
 ```
 
 ### Descrição do Terceiro Gráfico
+Gráfico Acido Citrico x Sulfatos agrupado pela qualidade do vinho. Pelo gráfico podemos ver uma relação entre a qualidade do vinho e as variaveis. Quanto maior o acido citrico maior a qualidade e quanto maior os sulfatos tambem. A quantidade de sulfatos e acido citrico parecem ser independentes também.
 
 ------
 
