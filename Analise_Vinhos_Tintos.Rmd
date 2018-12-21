@@ -1,6 +1,10 @@
 ---
 output:
   html_document: default
+    toc:true
+    toc_depth:2
+    toc_float: true
+    theme: united
   pdf_document: default
 ---
 # Análise de Vinhos Tinto
