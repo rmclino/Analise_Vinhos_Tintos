@@ -34,12 +34,19 @@ library(rcompanion)
 library(GGally)
 #library(scales)
 library(memisc)
-
+library(knitr)
 # Note que o parâmetro "echo" foi definido como FALSE neste código.
 #OK
 # Isso previne que o código apresente resultados formatados em HTML.
 # Você deve definir echo=FALSE para todos os blocos de código no seu arquivo.
 ```
+
+```{r echo=FALSE, message=FALSE, warning=FALSE, knitr}
+knitr::opts_chunk$set(fig.width = 9, fig.height = 5, fig.path = 'Figs/',
+                      fig.align = 'center', tidy= TRUE,
+                      echo=FALSE, warning = FALSE, message = FALSE)
+```
+
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, Leitura_Dados}
 # Carregamento dos dados
@@ -54,6 +61,7 @@ print(paste("Dimensão dos dados: ",dim(df_vinho)))
 print(paste("Estrutura dos Dados: ", str(df_vinho)))
 summary(df_vinho)
 names <- names(df_vinho)
+
 ```
 
 ## Informações dos Atributos
@@ -78,7 +86,7 @@ names <- names(df_vinho)
 
 10 - sulphates (potassium sulphate - g / dm3) - um aditivo ao vinho que contribui para preservar o vinho.
 
-11 - alcohol (potassium sulphate - g / dm3) - % de alcool no vinho
+11 - alcohol - % de alcool no vinho
 
 12 - quality (score between 0 and 10) - Variável se Saída - qualidade do vinho de 0 a 10.
 
@@ -149,79 +157,44 @@ Como me interessou ver o que influencia na classificacao de um vinho bom. Pensei
 Agrupei classificando os vinhos em LOW, AVG e TOP. Com base no summario de dados de qualidade, vamos pegar os vinho com menor qualidade do 1o quantil e maior classificação do que o 3o quantil e classifica-los.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, Cria_Grupo_Qualidade}
+groups <- c("LOW","AVG","TOP")
 df_vinho$quality.group <- ifelse(df_vinho$quality > 6,"TOP",
                                  ifelse(df_vinho$quality < 5,"LOW", "AVG"))
 
-df_vinho$quality.group <-factor(df_vinho$quality.group, levels=c("LOW","AVG","TOP"))
+df_vinho$quality.group <-factor(df_vinho$quality.group, levels=groups)
 
 table(df_vinho$quality.group)
 ```
 Sabemos que a classificação de um vinho leva em conta também o fator preço, que não temos no nosso dataset, por isso temos de tomar cuidado, as vezes um bom vinho em um preço não é um bom vinho a um nivel de preço mais alto. Mas mesmo assim vamos continuar nossa analise e escolher alguma variaveis para nosso estudo.
 
+```{r}
+colors <- c("grey","#5e2129","orange")
+```
+
 ### 1- Acidos e acidez dos Vinhos
 ```{r echo=FALSE, message=FALSE, warning=FALSE, Variavies_1}
 #fixed.acidity
-p1 <- qplot(data=subset(df_vinho, quality.group == "LOW"),
-            x= fixed.acidity, 
-            color =I('black'), 
-            fill=I('grey'), 
-            main = "Low Qualy Wines",
-            xlim = c(floor(min(df_vinho$fixed.acidity)),ceiling(max(df_vinho$fixed.acidity))))
-p2 <- qplot(data=subset(df_vinho, quality.group == "AVG"),
-            x= fixed.acidity, 
-            color =I('black'), 
-            fill=I('#5e2129'), 
-            main = "Vinhos Médios",
-            xlim = c(floor(min(df_vinho$fixed.acidity)),ceiling(max(df_vinho$fixed.acidity))))
-
-p3 <- qplot(data=subset(df_vinho, quality.group == "TOP"),
-            x= fixed.acidity, 
-            color =I('black'), 
-            fill=I('orange'), 
-            main = "Top Wines",
-            xlim = c(floor(min(df_vinho$fixed.acidity)),ceiling(max(df_vinho$fixed.acidity))))
-
+for( i in 1:3){ 
+  nam <- paste("p",i,sep="")
+  assign(nam, qplot(data=subset(df_vinho, quality.group == groups[i]), x= fixed.acidity,
+                    color =I('black'), fill=I(colors[i]), 
+                    main = paste(groups[i]," Qualy Wines"), 
+                    xlim = c(floor(min(df_vinho$fixed.acidity)),ceiling(max(df_vinho$fixed.acidity))))
+ )}
 #volatile.acidity
-p4 <- qplot(data=subset(df_vinho, quality.group == "LOW"),
-            x= volatile.acidity, 
-            color =I('black'), 
-            fill=I('grey'), 
-            main = "Low Qualy Wines",
-            xlim = c(floor(min(df_vinho$volatile.acidity)),ceiling(max(df_vinho$volatile.acidity))))
-p5 <- qplot(data=subset(df_vinho, quality.group == "AVG"),
-            x= volatile.acidity, 
-            color =I('black'), 
-            fill=I('#5e2129'), 
-            main = "AVG wines",
-            xlim = c(floor(min(df_vinho$volatile.acidity)),ceiling(max(df_vinho$volatile.acidity))))
-
-p6 <- qplot(data=subset(df_vinho, quality.group == "TOP"),
-            x= volatile.acidity, 
-            color =I('black'), 
-            fill=I('orange'), 
-            main = "Top Wines",
-            xlim = c(floor(min(df_vinho$volatile.acidity)),ceiling(max(df_vinho$volatile.acidity))))
+for( i in 1:3){ 
+  nam <- paste("p",i+3,sep="")
+  assign(nam, qplot(data=subset(df_vinho, quality.group == groups[i]),  x= volatile.acidity,
+                    color = I('black'), fill=I(colors[i]), main = paste(groups[i]," Qualy Wines"),
+                    xlim =c(floor(min(df_vinho$volatile.acidity)),ceiling(max(df_vinho$volatile.acidity))))
+ )}
 #citric.acid
-p7 <- qplot(data=subset(df_vinho, quality.group == "LOW"),
-            x= citric.acid, 
-            color =I('black'), 
-            fill=I('grey'), 
-            main = "Low Qualy Wines",
+for( i in 1:3){ 
+  nam <- paste("p",i+6,sep="")
+  assign(nam, qplot(data=subset(df_vinho, quality.group == groups[i]),x= citric.acid, 
+            color =I('black'), fill=I(colors[i]), main = paste(groups[i]," Qualy Wines"),
             xlim = c(floor(min(df_vinho$citric.acid)),ceiling(max(df_vinho$citric.acid))))
-p8 <- qplot(data=subset(df_vinho, quality.group == "AVG"),
-            x= citric.acid, 
-            color =I('black'), 
-            fill=I('#5e2129'), 
-            main = "AVG wines",
-            xlim = c(floor(min(df_vinho$citric.acid)),ceiling(max(df_vinho$citric.acid))))
-
-p9 <- qplot(data=subset(df_vinho, quality.group == "TOP"),
-            x= citric.acid, 
-            color =I('black'), 
-            fill=I('orange'), 
-            main = "Top Wines",
-            xlim = c(floor(min(df_vinho$citric.acid)),ceiling(max(df_vinho$citric.acid))))
-
+  )}
 
 grid.arrange(p1,p2,p3,p4,p5,p6,p7,p8,p9, ncol=3)
 ```
@@ -247,25 +220,14 @@ Acidez Fixa + Volatil -> Vamos somar as duas e ver se elas podem ser usadas em c
 ```{r echo=FALSE, message=FALSE, warning=FALSE, Variaveis_1_2}
 df_vinho$total.acidity <- df_vinho$fixed.acidity + df_vinho$volatile.acidity
 #total.acidity
-p1 <- qplot(data=subset(df_vinho, quality.group == "LOW"),
-            x= total.acidity, 
-            color =I('black'), 
-            fill=I('grey'), 
-            main = "Low Qualy Wines",
-            xlim = c(floor(min(df_vinho$total.acidity)),ceiling(max(df_vinho$total.acidity))))
-p2 <- qplot(data=subset(df_vinho, quality.group == "AVG"),
-            x= total.acidity, 
-            color =I('black'), 
-            fill=I('#5e2129'), 
-            main = "Vinhos Médios",
-            xlim = c(floor(min(df_vinho$total.acidity)),ceiling(max(df_vinho$total.acidity))))
-
-p3 <- qplot(data=subset(df_vinho, quality.group == "TOP"),
-            x= total.acidity, 
-            color =I('black'), 
-            fill=I('orange'), 
-            main = "Top Wines",
-            xlim = c(floor(min(df_vinho$total.acidity)),ceiling(max(df_vinho$total.acidity))))
+for( i in 1:3){ 
+  nam <- paste("p",i,sep="")
+  assign(nam, qplot(data=subset(df_vinho, quality.group == groups[i]),x= total.acidity,
+                    color =I('black'), fill=I(colors[i]), main = paste(groups[i]," Qualy Wines"),
+                    xlim = c(floor(min(df_vinho$total.acidity)),ceiling(max(df_vinho$total.acidity)))
+                    )
+         )
+}
 grid.arrange(p1,p2,p3,ncol=3)
 ```
 Acidez Total -> Descartei essa variavel pois aumenta muito a variancia
@@ -279,46 +241,22 @@ Ajustei os limites dos gráficos pois tinham muitos outliers
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, Variaveis_2}
 #residual.sugar
-p1 <- qplot(data=subset(df_vinho, quality.group == "LOW"),
-            x= residual.sugar, 
-            color =I('black'), 
-            fill=I('grey'), 
-            main = "Low Qualy Wines",
+for( i in 1:3){ 
+  nam <- paste("p",i,sep="")
+  assign(nam, qplot(data=subset(df_vinho, quality.group == groups[i]), x= residual.sugar, 
+            color =I('black'), fill=I(colors[i]), main = paste(groups[i]," Qualy Wines",
             xlim = c(floor(min(df_vinho$residual.sugar)),quantile(df_vinho$residual.sugar,0.95)))
-p2 <- qplot(data=subset(df_vinho, quality.group == "AVG"),
-            x= residual.sugar, 
-            color =I('black'), 
-            fill=I('#5e2129'), 
-            main = "Vinhos Médios",
-            xlim = c(floor(min(df_vinho$residual.sugar)),quantile(df_vinho$residual.sugar,0.95)))
-
-p3 <- qplot(data=subset(df_vinho, quality.group == "TOP"),
-            x= residual.sugar, 
-            color =I('black'), 
-            fill=I('orange'), 
-            main = "Top Wines",
-            xlim = c(floor(min(df_vinho$residual.sugar)),quantile(df_vinho$residual.sugar,0.95)))
-
+         ))
+}
 #chlorides
-p4 <- qplot(data=subset(df_vinho, quality.group == "LOW"),
-            x= chlorides, 
-            color =I('black'), 
-            fill=I('grey'), 
-            main = "Low Qualy Wines",
-            xlim = c((min(df_vinho$chlorides)),(quantile(df_vinho$chlorides,0.95))))
-p5 <- qplot(data=subset(df_vinho, quality.group == "AVG"),
-            x= chlorides, 
-            color =I('black'), 
-            fill=I('#5e2129'), 
-            main = "AVG wines",
-            xlim = c((min(df_vinho$chlorides)),(quantile(df_vinho$chlorides,0.95))))
+for( i in 1:3){ 
+  nam <- paste("p",i+3,sep="")
+  assign(nam, qplot(data=subset(df_vinho, quality.group == groups[i]), x= chlorides, 
+            color =I('black'), fill=I(colors[i]), main = paste(groups[i]," Qualy Wines",
+             xlim = c((min(df_vinho$chlorides)),(quantile(df_vinho$chlorides,0.95)))
+         )))
+}
 
-p6 <- qplot(data=subset(df_vinho, quality.group == "TOP"),
-            x= chlorides, 
-            color =I('black'), 
-            fill=I('orange'), 
-            main = "Top Wines",
-            xlim = c((min(df_vinho$chlorides)),(quantile(df_vinho$chlorides,0.95))))
 
 grid.arrange(p1,p2,p3,p4,p5,p6, ncol=3)
 
@@ -339,68 +277,26 @@ df_vinho %>%
 ### 3 - Concentrações de Dioxido de enxofre e sulphatos.
 ```{r echo=FALSE, message=FALSE, warning=FALSE, Variaveis_3}
 #free.sulfur.dioxide
-p1 <- qplot(data=subset(df_vinho, quality.group == "LOW"),
-            x= free.sulfur.dioxide, 
-            color =I('black'), 
-            fill=I('grey'), 
-            main = "Low Qualy Wines",
-            xlim = c(floor(min(df_vinho$free.sulfur.dioxide)),(quantile(df_vinho$free.sulfur.dioxide,0.99))))
-p2 <- qplot(data=subset(df_vinho, quality.group == "AVG"),
-            x= free.sulfur.dioxide, 
-            color =I('black'), 
-            fill=I('#5e2129'), 
-            main = "Vinhos Médios",
-            xlim = c(floor(min(df_vinho$free.sulfur.dioxide)),(quantile(df_vinho$free.sulfur.dioxide,0.99))))
-
-p3 <- qplot(data=subset(df_vinho, quality.group == "TOP"),
-            x= free.sulfur.dioxide, 
-            color =I('black'), 
-            fill=I('orange'), 
-            main = "Top Wines",
-            xlim = c(floor(min(df_vinho$free.sulfur.dioxide)),(quantile(df_vinho$free.sulfur.dioxide,0.99))))
-
+for( i in 1:3){ 
+  nam <- paste("p",i,sep="")
+  assign(nam, qplot(data=subset(df_vinho, quality.group == groups[i]), x= free.sulfur.dioxide, 
+            color =I('black'), fill=I(colors[i]), main = paste(groups[i]," Qualy Wines",
+            xlim = c(floor(min(df_vinho$free.sulfur.dioxide)),(quantile(df_vinho$free.sulfur.dioxide,0.99))))))
+}
 #total.sulfur.dioxide
-p4 <- qplot(data=subset(df_vinho, quality.group == "LOW"),
-            x= total.sulfur.dioxide, 
-            color =I('black'), 
-            fill=I('grey'), 
-            main = "Low Qualy Wines",
-            xlim = c((min(df_vinho$total.sulfur.dioxide)),(quantile(df_vinho$total.sulfur.dioxide,0.99))))
-p5 <- qplot(data=subset(df_vinho, quality.group == "AVG"),
-            x= total.sulfur.dioxide, 
-            color =I('black'), 
-            fill=I('#5e2129'), 
-            main = "AVG wines",
-            xlim = c((min(df_vinho$total.sulfur.dioxide)),(quantile(df_vinho$total.sulfur.dioxide,0.99))))
-
-p6 <- qplot(data=subset(df_vinho, quality.group == "TOP"),
-            x= total.sulfur.dioxide, 
-            color =I('black'), 
-            fill=I('orange'), 
-            main = "Top Wines",
-            xlim = c((min(df_vinho$total.sulfur.dioxide)),(quantile(df_vinho$total.sulfur.dioxide,0.99))))
+for( i in 1:3){ 
+  nam <- paste("p",i+3,sep="")
+  assign(nam, qplot(data=subset(df_vinho, quality.group == groups[i]), x= total.sulfur.dioxide, 
+            color =I('black'), fill=I(colors[i]), main = paste(groups[i]," Qualy Wines",
+            xlim = c((min(df_vinho$total.sulfur.dioxide)),(quantile(df_vinho$total.sulfur.dioxide,0.99))))))
+}
 #sulphates
-p7 <- qplot(data=subset(df_vinho, quality.group == "LOW"),
-            x= sulphates, 
-            color =I('black'), 
-            fill=I('grey'), 
-            main = "Low Qualy Wines",
-            xlim = c((min(df_vinho$sulphates)),(max(df_vinho$sulphates))))
-p8 <- qplot(data=subset(df_vinho, quality.group == "AVG"),
-            x= sulphates, 
-            color =I('black'), 
-            fill=I('#5e2129'), 
-            main = "AVG wines",
-            xlim = c((min(df_vinho$sulphates)),(max(df_vinho$sulphates))))
-
-p9 <- qplot(data=subset(df_vinho, quality.group == "TOP"),
-            x= sulphates, 
-            color =I('black'), 
-            fill=I('orange'), 
-            main = "Top Wines",
-            xlim = c((min(df_vinho$sulphates)),(max(df_vinho$sulphates))))
-
-
+for( i in 1:3){ 
+  nam <- paste("p",i+6,sep="")
+  assign(nam, qplot(data=subset(df_vinho, quality.group == groups[i]), x= sulphates, 
+            color =I('black'), fill=I(colors[i]), main = paste(groups[i]," Qualy Wines",
+            xlim = c((min(df_vinho$sulphates)),(max(df_vinho$sulphates))))))
+}
 grid.arrange(p1,p2,p3,p4,p5,p6,p7,p8,p9, ncol=3)
 ```
 
@@ -426,99 +322,44 @@ df_vinho %>%
 
 Nesse grupo teve destaque os sulphates, uma maior concetração em vinhos melhores. Em relação ou dioxido de enxofre vemos um outlier nos vinhos melhores, mas olhando o grafico vemos que como os outros grupos não tem tanta relevancia na qualidade.
 
-Acidez Fixa + Volatiol -> Vamos somar as duas e ver se elas podem ser usadas em conjunto.
+Dioxido de enxofre fixo -> Vamos subtrair o total do livre.
 ```{r echo=FALSE, message=FALSE, warning=FALSE, Variaveis_3_1}
 df_vinho$fixed.sulfur.dioxide <- log( df_vinho$total.sulfur.dioxide - df_vinho$free.sulfur.dioxide)
-#total.acidity
-p1 <- qplot(data=subset(df_vinho, quality.group == "LOW"),
-            x= fixed.sulfur.dioxide, 
-            color =I('black'), 
-            fill=I('grey'), 
-            main = "Low Qualy Wines",
-            xlim = c(floor(min(df_vinho$fixed.sulfur.dioxide)),ceiling(max(df_vinho$fixed.sulfur.dioxide))))
-p2 <- qplot(data=subset(df_vinho, quality.group == "AVG"),
-            x= fixed.sulfur.dioxide, 
-            color =I('black'), 
-            fill=I('#5e2129'), 
-            main = "Vinhos Médios",
-            xlim = c(floor(min(df_vinho$fixed.sulfur.dioxide)),ceiling(max(df_vinho$fixed.sulfur.dioxide))))
-
-p3 <- qplot(data=subset(df_vinho, quality.group == "TOP"),
-            x= fixed.sulfur.dioxide, 
-            color =I('black'), 
-            fill=I('orange'), 
-            main = "Top Wines",
-            xlim = c(floor(min(df_vinho$fixed.sulfur.dioxide)),ceiling(max(df_vinho$fixed.sulfur.dioxide))))
+#fixed.sulfur.dioxide
+for( i in 1:3){ 
+  nam <- paste("p",i+0,sep="")
+  assign(nam, qplot(data=subset(df_vinho, quality.group == groups[i]), x= fixed.sulfur.dioxide, 
+            color =I('black'), fill=I(colors[i]), main = paste(groups[i]," Qualy Wines",
+            xlim = c(floor(min(df_vinho$fixed.sulfur.dioxide)),ceiling(max(df_vinho$fixed.sulfur.dioxide))))))
+}
 grid.arrange(p1,p2,p3,ncol=3)
 summary(df_vinho$fixed.sulfur.dioxide)
+sd(df_vinho$fixed.sulfur.dioxide)
 ```
 ### 4- Densidade, pH e nivel de Alcool
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, Variaveis_4}
 #density
-p1 <- qplot(data=subset(df_vinho, quality.group == "LOW"),
-            x= density, 
-            color =I('black'), 
-            fill=I('grey'), 
-            main = "Low Qualy Wines",
-            
-            xlim = c((min(df_vinho$density)),(max(df_vinho$density))))
-p2 <- qplot(data=subset(df_vinho, quality.group == "AVG"),
-            x= density, 
-            color =I('black'), 
-            fill=I('#5e2129'), 
-            main = "Vinhos Médios",
-            xlim = c((min(df_vinho$density)),(max(df_vinho$density))))
-
-p3 <- qplot(data=subset(df_vinho, quality.group == "TOP"),
-            x= density, 
-            color =I('black'), 
-            fill=I('orange'), 
-            main = "Top Wines",
-            xlim = c((min(df_vinho$density)),(max(df_vinho$density))))
-
+for( i in 1:3){ 
+  nam <- paste("p",i+0,sep="")
+  assign(nam, qplot(data=subset(df_vinho, quality.group == groups[i]), x= density, 
+            color =I('black'), fill=I(colors[i]), main = paste(groups[i]," Qualy Wines",
+            xlim = c((min(df_vinho$density)),(max(df_vinho$density))))))
+}
 #pH
-p4 <- qplot(data=subset(df_vinho, quality.group == "LOW"),
-            x= pH, 
-            color =I('black'), 
-            fill=I('grey'), 
-            main = "Low Qualy Wines",
-            xlim = c((min(df_vinho$pH)),(max(df_vinho$pH))))
-p5 <- qplot(data=subset(df_vinho, quality.group == "AVG"),
-            x= pH, 
-            color =I('black'), 
-            fill=I('#5e2129'), 
-            main = "AVG wines",
-            xlim = c((min(df_vinho$pH)),(max(df_vinho$pH))))
-
-p6 <- qplot(data=subset(df_vinho, quality.group == "TOP"),
-            x= pH, 
-            color =I('black'), 
-            fill=I('orange'), 
-            main = "Top Wines",
-            xlim = c((min(df_vinho$pH)),(max(df_vinho$pH))))
+for( i in 1:3){ 
+  nam <- paste("p",i+3,sep="")
+  assign(nam, qplot(data=subset(df_vinho, quality.group == groups[i]), x= pH, 
+            color =I('black'), fill=I(colors[i]), main = paste(groups[i]," Qualy Wines",
+            xlim = c((min(df_vinho$pH)),(max(df_vinho$pH))))))
+}
 #alcohol
-p7 <- qplot(data=subset(df_vinho, quality.group == "LOW"),
-            x= alcohol.trans, 
-            color =I('black'), 
-            fill=I('grey'), 
-            main = "Low Qualy Wines",
-            xlim = c((min(df_vinho$alcohol.trans)),(max(df_vinho$alcohol.trans))))
-p8 <- qplot(data=subset(df_vinho, quality.group == "AVG"),
-            x= alcohol.trans, 
-            color =I('black'), 
-            fill=I('#5e2129'), 
-            main = "AVG wines",
-            xlim = c((min(df_vinho$alcohol.trans)),(max(df_vinho$alcohol.trans))))
-
-p9 <- qplot(data=subset(df_vinho, quality.group == "TOP"),
-            x= alcohol.trans, 
-            color =I('black'), 
-            fill=I('orange'), 
-            main = "Top Wines",
-            xlim = c((min(df_vinho$alcohol.trans)),(max(df_vinho$alcohol.trans))))
-
-
+for( i in 1:3){ 
+  nam <- paste("p",i+6,sep="")
+  assign(nam, qplot(data=subset(df_vinho, quality.group == groups[i]), x= alcohol.trans, 
+            color =I('black'), fill=I(colors[i]), main = paste(groups[i]," Qualy Wines",
+            xlim = c((min(df_vinho$alcohol.trans)),(max(df_vinho$alcohol.trans))))))
+}
 grid.arrange(p1,p2,p3,p4,p5,p6,p7,p8,p9, ncol=3)
 ```
 Densidade (density) -> Sem muito a nos dizer a primeira vista.
@@ -604,10 +445,6 @@ panel.cor <- function(x, y, digits = 2, prefix = "", cex.cor, ...)
 }
 pairs(df_vinho.sub, diag.panel = panel.hist, upper.panel = panel.cor,
       lower.panel = panel.smooth)
-#for(name in names(df_vinho)){
-#  
-#  print( paste(name, " x quality:", cor(df_vinho$quality, as.numeric(df_vinho[,name])) ))
-#}
 ```
 
 
@@ -637,9 +474,6 @@ ggplot( data = df_vinho.sub, aes(y=alcohol.trans, x=quality))+
 ggplot( data = df_vinho.sub, aes(y=alcohol.trans, x=quality.group))+
   geom_boxplot()+
   geom_jitter(alpha=1/10, color='blue')
-  
-
-
 ```
 
 Gráfico Multivariado 3
@@ -698,15 +532,16 @@ Achei interessante achar uma variaveis dependentes e outras independentes (podem
 Modelo com R^2 baixo. Talvez mais tempo para adaptar ou filtrar o dataset dos outliers.
 
 ```{r echo=FALSE, message=FALSE, warning=FALSE, Ana_MultuVariada}
-m1 <- lm(I(quality) ~ I(alcohol.trans), data= df_vinho.sub)
+df_vinho.sub$top <- ifelse(df_vinho.sub$quality <6, 1,0)
+
+m1 <- lm(I(top) ~ I(alcohol.trans), data= df_vinho.sub)
 m2 <- update(m1, ~ . + sulphates)
-m3 <- update(m2, ~ . + -volatile.acidity.trans )
+m3 <- update(m2, ~ . + volatile.acidity.trans )
 m4 <- update(m3, ~ . + citric.acid)
 m5 <- update(m4, ~ . + chlorides)
 m6 <- update(m5, ~ . + fixed.acidity)
 
 mtable(m1,m2,m3,m4,m5,m6)
-
 ```
 
 ------
@@ -715,9 +550,9 @@ mtable(m1,m2,m3,m4,m5,m6)
 
 ### Primeiro Gráfico
 ```{r echo=FALSE, message=FALSE, warning=FALSE, Plot1}
-ggplot(df_vinho.sub, aes(alcohol.trans),
-       xlab ="Alcohol content (%)",
-      ylab= "Number of wines")+
+ggplot(df_vinho.sub, aes(alcohol.trans))+
+      xlab("% de Alcool no vinho")+
+      ylab("Número de vinhos")+
   geom_histogram(binwidth = 0.1, color =I('black'),fill=I('#5e2129')) +
   geom_vline(xintercept = median(df_vinho.sub$alcohol.trans), color = 'darkblue') +
   annotate('text',
@@ -746,8 +581,8 @@ ggplot( data = df_vinho.sub, aes(x=fixed.acidity, y=citric.acid)) +
   scale_y_continuous(limits= c(min(df_vinho.sub$citric.acid),quantile(df_vinho.sub$citric.acid,0.99)))+
   geom_smooth(method = "lm") +
   ggtitle("Acido Cítrico vs Acidez Fixa") +
-  xlab("Acidez Fixa ") +
-  ylab("Acido Cítrico")
+  xlab("Acidez Fixa - gramas / litro ") +
+  ylab("Acido Cítrico  - gramas / litro")
 ```
 
 ### Descrição do Segundo Gráfico
@@ -761,9 +596,8 @@ ggplot( data = df_vinho.sub, aes(x=sulphates, y=citric.acid, color=quality.group
   scale_color_brewer(name= "Quality Group",type="qual",palette  = 'GnBu' )+
   ggtitle(" Citric acid x Sulphates grouped by Quality")+
   theme(plot.title = element_text(hjust=0.5,lineheight=.8, face="bold"))+
-  xlab("Sulphates")+
-  ylab("Citric acid")
-```
+  xlab("Sulphates - gramas/ litro")+
+  ylab("Citric acid - gramas / litro")
 ```
 
 ### Descrição do Terceiro Gráfico
@@ -773,7 +607,7 @@ Gráfico Acido Citrico x Sulfatos agrupado pela qualidade do vinho. Pelo gráfic
 
 # Reflexão
 
-Pelos dados que temos podemos notar que a qualidade de um vinho tinto não depende exclusivamente de 1 ou poucas variaveis. Assim como é muito dificil prever a qualidade de um vinho somente pela propriedades quimicas que temos nos nossos atributos. Talvez quando comparado entre safras diferentes ou mesmo tipo de uva esses atributos possom cria um modelo com boa chances de uma previsão acertada.
-Seria interessante ter mais dados e mais atributos. O preço também é um determinante importante. Como foi feito a qualificação dos vinhos pode influenciar bastante no resultado.
-O interessante do projeto foi rever todos os conceitos dado no curso de EDA.
-Acho que não fui feliz no dataset para construir um modelo preditivo, um R^2 muito baixo (0,34), o modelo poderia ser usado para prever a qualidade contraria com melhor propriedade.
+Pelos dados que temos podemos notar que a qualidade de um vinho tinto não depende exclusivamente de uma ou poucas variaveis. Ficou muito dificil prever a qualidade de um vinho somente pela propriedades quimicas que temos nos nossos atributos. Talvez quando comparado entre safras diferentes ou mesmo tipo de uva esses atributos possam criar modelos com boa chances de uma previsão acertada.
+Seria interessante ter mais dados e mais atributos. O preço também é um determinante importante. E ter uma visão melhor de como foi feito a qualificação dos vinhos seria interessante pois o ambiente a época a temperatura pode influenciar bastante no resultado.
+O interessante do projeto foi rever todos os conceitos dado no curso de EDA e aprender mais bibliotecas em R.
+Acho que não fui feliz no dataset para construir um modelo preditivo, um R^2 muito baixo (0,347), o modelo poderia talvez ser usado para prever a qualidade contraria com melhor propriedade.
