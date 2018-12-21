@@ -1,8 +1,9 @@
 ---
+title: "Analise Vinhos Tintos"
 output:
-  html_document: default
-    toc:true
-    toc_depth:2
+  html_document: 
+    toc: true
+    toc_depth: 2
     toc_float: true
     theme: united
   pdf_document: default
